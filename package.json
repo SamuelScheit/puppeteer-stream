@@ -1,6 +1,6 @@
 {
 	"name": "puppeteer-stream",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "",
 	"main": "examples/discord.js",
 	"types": "dist/PuppeteerStream.d.ts",
