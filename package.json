@@ -7,6 +7,9 @@
 	"scripts": {},
 	"keywords": [],
 	"author": "Flam3rboy",
+	"repository": {
+		"url": "https://github.com/Flam3rboy/puppeteer-stream"
+	},
 	"license": "ISC",
 	"dependencies": {
 		"puppeteer": "^5.5.0"
