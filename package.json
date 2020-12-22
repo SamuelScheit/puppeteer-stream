@@ -2,7 +2,7 @@
 	"name": "puppeteer-stream",
 	"version": "1.0.2",
 	"description": "",
-	"main": "examples/discord.js",
+	"main": "dist/PuppeteerStream.js",
 	"types": "dist/PuppeteerStream.d.ts",
 	"scripts": {},
 	"keywords": [],
