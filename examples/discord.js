@@ -1,12 +1,12 @@
 // npm i discord.js @discordjs/opus
 // start this script
 const { Client } = require("discord.js");
-require("../dist/PuppeteerStream");
+require("puppeteer-stream");
 const puppeteer = require("puppeteer");
 
 const client = new Client();
 
-console.log("starting");
+console.log("starting ...");
 client.on("ready", () => console.log("bot started: enter !play in a server channel"));
 
 client.on("message", async (message) => {

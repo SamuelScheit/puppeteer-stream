@@ -1,4 +1,4 @@
-require("../dist/PuppeteerStream");
+require("puppeteer-stream");
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 
