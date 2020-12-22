@@ -76,4 +76,4 @@ async function test() {
 test();
 ```
 
-### [Stream to Discord](examples/discord.js)
+### [Stream to Discord](/lib/examples/discord.js)
