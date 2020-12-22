@@ -43,7 +43,7 @@ The method `page.getStream(options)` takes the following options:
 
 ## Example
 
-### Save Stream to File:
+### [Save Stream to File:](/examples/example.js)
 
 ```js
 require("puppeteer-stream");
@@ -76,4 +76,4 @@ async function test() {
 test();
 ```
 
-### [Stream to Discord](/lib/examples/discord.js)
+### [Stream to Discord](/examples/discord.js)
