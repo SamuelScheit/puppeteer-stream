@@ -1,12 +1,12 @@
 {
-	"name": "puppeteerstream",
+	"name": "puppeteer-stream",
 	"version": "1.0.0",
 	"description": "",
-	"main": "dist/PuppeteerStream.js",
+	"main": "examples/discord.js",
 	"types": "dist/PuppeteerStream.d.ts",
 	"scripts": {},
 	"keywords": [],
-	"author": "",
+	"author": "Flam3rboy",
 	"license": "ISC",
 	"dependencies": {
 		"puppeteer": "^5.5.0"
