@@ -1,6 +1,6 @@
 # puppeteer-stream
 
-A Extension for [puppeteer](https://www.npmjs.com/package/puppeteer) to retrieve audio and/or video streams
+An Extension for Puppeteer to retrieve audio and/or video streams
 
 ## Installation
 

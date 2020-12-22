@@ -5,7 +5,14 @@
 	"main": "dist/PuppeteerStream.js",
 	"types": "dist/PuppeteerStream.d.ts",
 	"scripts": {},
-	"keywords": [],
+	"keywords": [
+		"puppeteer",
+		"video",
+		"audio",
+		"stream",
+		"screenshot",
+		"recorder"
+	],
 	"author": "Flam3rboy",
 	"repository": {
 		"url": "https://github.com/Flam3rboy/puppeteer-stream"
