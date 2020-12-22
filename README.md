@@ -25,9 +25,9 @@ import "puppeteer-stream";
 import puppeteer from "puppeteer";
 ```
 
-This will patch the launch method of puppeteer to start with this record extension and will add a `page.getStream()` method to all pages.
+This will patch the launch method of puppeteer to start with this record extension and will add a `page.getStream(options)` method to all pages.
 
-The method `page.getStream()` takes the following options:
+The method `page.getStream(options)` takes the following options:
 
 ```ts
 {
