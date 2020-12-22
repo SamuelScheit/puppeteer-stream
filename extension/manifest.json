@@ -1,0 +1,11 @@
+{
+	"name": "Video Capture",
+	"version": "0.1.0",
+	"key": "ackedhmjjinfocdcekpnbdocpmiffaac",
+	"manifest_version": 2,
+	"background": {
+		"persistent": true,
+		"scripts": ["background.js"]
+	},
+	"permissions": ["tabs", "<all_urls>", "tabCapture"]
+}
