@@ -34,7 +34,7 @@ puppeteer.launch = async function (opts: LaunchOptions) {
 	if (!opts) opts = {};
 	if (!opts.args) opts.args = [];
 
-	const extensionPath = path.join(__dirname, "..", "..", "extension");
+	const extensionPath = path.join(__dirname, "..", "extension");
 	const extensionId = "jjndjgheafjngoipoacpjgeicjeomjli";
 	let loadExtension = false;
 	let loadExtensionExcept = false;
