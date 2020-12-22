@@ -1,6 +1,6 @@
 {
 	"name": "puppeteer-stream",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"description": "",
 	"main": "dist/PuppeteerStream.js",
 	"types": "dist/PuppeteerStream.d.ts",
