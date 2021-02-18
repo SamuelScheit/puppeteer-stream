@@ -1,8 +1,7 @@
 // npm i discord.js @discordjs/opus ffmpeg-static puppeteer puppeteer-stream
 // start this script
 const { Client } = require("discord.js");
-require("puppeteer-stream");
-const puppeteer = require("puppeteer");
+const { launch, getStream } = require("puppeteer-stream");
 
 const client = new Client();
 
@@ -14,7 +13,7 @@ client.on("message", async (message) => {
 	if (!message.member) return message.reply("This command can only be executed on a server");
 	if (!message.member.voice || !message.member.voice.channel) return message.reply("Join a Voice Channel first");
 
-	const browser = await puppeteer.launch({
+	const browser = await launch({
 		defaultViewport: {
 			width: 1920,
 			height: 1080,
@@ -23,7 +22,7 @@ client.on("message", async (message) => {
 	const connection = await message.member.voice.channel.join();
 	const page = await browser.newPage();
 	await page.goto("https://dl5.webmfiles.org/big-buck-bunny_trailer.webm");
-	const stream = await page.getStream({ audio: true, video: false });
+	const stream = await getStream(page, { audio: true, video: false });
 
 	const dispatcher = await connection.play(stream);
 });

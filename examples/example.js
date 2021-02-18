@@ -1,11 +1,10 @@
-require("puppeteer-stream");
-const puppeteer = require("puppeteer");
+const { launch, getStream } = require("puppeteer-stream");
 const fs = require("fs");
 
 const file = fs.createWriteStream(__dirname + "/test.webm");
 
 async function test() {
-	const browser = await puppeteer.launch({
+	const browser = await launch({
 		defaultViewport: {
 			width: 1920,
 			height: 1080,
@@ -14,7 +13,7 @@ async function test() {
 
 	const page = await browser.newPage();
 	await page.goto("https://dl5.webmfiles.org/big-buck-bunny_trailer.webm");
-	const stream = await page.getStream({ audio: true, video: true });
+	const stream = await getStream(page, { audio: true, video: true });
 	console.log("recording");
 
 	stream.pipe(file);

@@ -14,24 +14,18 @@ npm i puppeteer-stream
 ES5 import
 
 ```js
-require("puppeteer-stream");
-const puppeteer = require("puppeteer");
+const { launch, getStream } = require("puppeteer-stream");
 ```
 
 or ES6 import
 
 ```js
-import "puppeteer-stream";
-import puppeteer from "puppeteer";
+import { launch, getStream } from "puppeteer-stream";
 ```
 
-### Notice
+### Notice: This will only work in headful mode
 
-This will patch the launch method of puppeteer to start with this record extension and will add a `page.getStream(options)` method to all pages.
-
-### This will only work in headful mode
-
-The method `page.getStream(options)` takes the following options
+The method `getStream(options)` takes the following options
 
 ```ts
 {
@@ -53,14 +47,13 @@ For a detailed documentation of the options have a look at the [HTML5 MediaRecor
 ### [Save Stream to File:](/examples/example.js)
 
 ```js
-require("puppeteer-stream");
-const puppeteer = require("puppeteer");
+const { launch, getStream }  = require("puppeteer-stream");
 const fs = require("fs");
 
 const file = fs.createWriteStream(__dirname + "/test.webm");
 
 async function test() {
-	const browser = await puppeteer.launch({
+	const browser = await slaunch({
 		defaultViewport: {
 			width: 1920,
 			height: 1080,
@@ -69,7 +62,7 @@ async function test() {
 
 	const page = await browser.newPage();
 	await page.goto("https://dl5.webmfiles.org/big-buck-bunny_trailer.webm");
-	const stream = await page.getStream({ audio: true, video: true });
+	const stream = await getStream(page, { audio: true, video: true });
 	console.log("recording");
 
 	stream.pipe(file);
