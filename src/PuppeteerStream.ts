@@ -1,8 +1,6 @@
-import puppeteer, { LaunchOptions } from "puppeteer";
-import { Page } from "puppeteer/lib/cjs/puppeteer/common/Page";
+import puppeteer, { LaunchOptions, Browser, Page, BrowserOptions, ChromeArgOptions } from "puppeteer";
 import { Readable, ReadableOptions } from "stream";
 import path from "path";
-import { Browser } from "puppeteer/lib/cjs/puppeteer/common/Browser";
 
 export class Stream extends Readable {
 	constructor(private page: Page, options?: ReadableOptions) {
@@ -28,10 +26,9 @@ declare module "puppeteer" {
 	}
 }
 
-const oldLaunch = puppeteer.launch;
-// @ts-ignore
-puppeteer.launch = async function (opts: LaunchOptions) {
+export async function launch(opts: LaunchOptions & BrowserOptions & ChromeArgOptions) {
 	if (!opts) opts = {};
+
 	if (!opts.args) opts.args = [];
 
 	const extensionPath = path.join(__dirname, "..", "extension");
@@ -63,11 +60,11 @@ puppeteer.launch = async function (opts: LaunchOptions) {
 
 	opts.headless = false;
 
-	const browser: Browser = await oldLaunch.call(this, opts);
+	const browser: Browser = await puppeteer.launch(opts);
 	// @ts-ignore
 	browser.encoders = new Map();
 
-	const targets = await browser.targets();
+	const targets = browser.targets();
 	const extensionTarget = targets.find(
 		// @ts-ignore
 		(target) => target.type() === "background_page" && target._targetInfo.title === "Video Capture"
@@ -83,15 +80,7 @@ puppeteer.launch = async function (opts: LaunchOptions) {
 	});
 
 	return browser;
-};
-
-const oldNewPage = Browser.prototype.newPage;
-Browser.prototype.newPage = async function (this: Browser) {
-	const page = await oldNewPage.call(this);
-	const pages = await this.pages();
-	page.index = pages.length - 1;
-	return page;
-};
+}
 
 export type BrowserMimeType =
 	| "audio/webm"
@@ -104,8 +93,7 @@ export type BrowserMimeType =
 	| "audio/wav"
 	| "audio/vorbis"
 	| "video/webm"
-	| "video/mp4"
-	| "image/gif";
+	| "video/mp4";
 
 export interface getStreamOptions {
 	audio: boolean;
@@ -117,9 +105,8 @@ export interface getStreamOptions {
 	frameSize?: number;
 }
 
-// @ts-ignore
-Page.prototype.getStream = async function (this: Page, opts: getStreamOptions) {
-	const encoder = new Stream(this);
+export async function getStream(page: Page, opts: getStreamOptions) {
+	const encoder = new Stream(page);
 	if (!opts.audio && !opts.video) throw new Error("At least audio or video must be true");
 	if (!opts.mimeType) {
 		if (opts.video) opts.mimeType = "video/webm";
@@ -127,23 +114,23 @@ Page.prototype.getStream = async function (this: Page, opts: getStreamOptions) {
 	}
 	if (!opts.frameSize) opts.frameSize = 20;
 
-	await this.bringToFront();
+	await page.bringToFront();
 	// @ts-ignore
 
-	await (<Page>this.browser().videoCaptureExtension).evaluate(
+	await (<Page>page.browser().videoCaptureExtension).evaluate(
 		(settings) => {
 			// @ts-ignore
 			START_RECORDING(settings);
 		},
 		// @ts-ignore
-		{ ...opts, index: this.index }
+		{ ...opts, index: page._id }
 	);
 
 	// @ts-ignore
-	this.browser().encoders.set(this.index, encoder);
+	page.browser().encoders.set(page._id, encoder);
 
 	return encoder;
-};
+}
 
 function str2ab(str: any) {
 	// Convert a UTF-8 String to an ArrayBuffer

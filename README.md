@@ -31,12 +31,12 @@ This will patch the launch method of puppeteer to start with this record extensi
 
 ### This will only work in headful mode
 
-The method `page.getStream(options)` takes the following options:
+The method `page.getStream(options)` takes the following options
 
 ```ts
 {
-	audio: boolean; // wheter or not to enable audio
-	video: boolean; // wheter or not to enable video
+	audio: boolean; // whether or not to enable audio
+	video: boolean; // whether or not to enable video
 	mimeType?: string; // optional mime type of the stream, e.g. "audio/webm" or "video/webm"
 	audioBitsPerSecond?: number; // The chosen bitrate for the audio component of the media.
 	videoBitsPerSecond?: number; // The chosen bitrate for the video component of the media.
@@ -44,8 +44,9 @@ The method `page.getStream(options)` takes the following options:
 	frameSize?: number = 20; // The number of milliseconds to record into each packet.
 }
 ```
-
 and returns a `Promise<`[`Readable`](/dist/PuppeteerStream.d.ts#L4)`>`
+
+For a detailed documentation of the options have a look at the [HTML5 MediaRecorder Options](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/MediaRecorder)
 
 ## Example
 

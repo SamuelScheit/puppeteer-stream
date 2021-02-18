@@ -1,6 +1,6 @@
 {
 	"name": "puppeteer-stream",
-	"version": "1.0.7",
+	"version": "2.0.0",
 	"description": "",
 	"main": "dist/PuppeteerStream.js",
 	"types": "dist/PuppeteerStream.d.ts",
@@ -19,7 +19,7 @@
 	},
 	"license": "ISC",
 	"dependencies": {
-		"puppeteer": "^5.5.0"
+		"puppeteer": "^7.1.0"
 	},
 	"devDependencies": {
 		"@types/node": "^14.14.14",
