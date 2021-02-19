@@ -57,7 +57,7 @@ const fs = require("fs");
 const file = fs.createWriteStream(__dirname + "/test.webm");
 
 async function test() {
-	const browser = await slaunch({
+	const browser = await launch({
 		defaultViewport: {
 			width: 1920,
 			height: 1080,
