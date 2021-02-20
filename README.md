@@ -1,3 +1,7 @@
+<a href="https://www.npmjs.com/package/puppeteer-stream">
+	<img src="https://img.shields.io/npm/v/puppeteer-stream">
+</a>
+
 # puppeteer-stream
 
 An Extension for Puppeteer to retrieve audio and/or video streams of a page
@@ -53,7 +57,7 @@ const fs = require("fs");
 const file = fs.createWriteStream(__dirname + "/test.webm");
 
 async function test() {
-	const browser = await slaunch({
+	const browser = await launch({
 		defaultViewport: {
 			width: 1920,
 			height: 1080,
