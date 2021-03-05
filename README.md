@@ -1,10 +1,11 @@
+# puppeteer-stream
+
+An Extension for Puppeteer to retrieve audio and/or video streams of a page
+
 <a href="https://www.npmjs.com/package/puppeteer-stream">
 	<img src="https://img.shields.io/npm/v/puppeteer-stream">
 </a>
 
-# puppeteer-stream
-
-An Extension for Puppeteer to retrieve audio and/or video streams of a page
 
 ## Installation
 
@@ -27,6 +28,8 @@ or ES6 import
 import { launch, getStream } from "puppeteer-stream";
 ```
 
+
+
 ### Notice: This will only work in headful mode
 
 The method `getStream(options)` takes the following options
@@ -46,9 +49,12 @@ and returns a `Promise<`[`Readable`](/dist/PuppeteerStream.d.ts#L4)`>`
 
 For a detailed documentation of the options have a look at the [HTML5 MediaRecorder Options](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/MediaRecorder)
 
+### Launch
+The method `launch(options)` is just a slightly changed puppeteer [launch](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-puppeteerlaunchoptions) function to start puppeteer in headful mode with this extension.
+
 ## Example
 
-### [Save Stream to File:](/examples/example.js)
+### [Save Stream to File:](/examples/file.js)
 
 ```js
 const { launch, getStream }  = require("puppeteer-stream");
@@ -65,7 +71,7 @@ async function test() {
 	});
 
 	const page = await browser.newPage();
-	await page.goto("https://dl5.webmfiles.org/big-buck-bunny_trailer.webm");
+	await page.goto("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
 	const stream = await getStream(page, { audio: true, video: true });
 	console.log("recording");
 
@@ -81,3 +87,4 @@ test();
 ```
 
 ### [Stream to Discord](/examples/discord.js)
+### [Stream Spotify](https://www.npmjs.com/package/spotify-playback-sdk-node)

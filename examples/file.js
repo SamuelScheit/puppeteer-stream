@@ -12,7 +12,7 @@ async function test() {
 	});
 
 	const page = await browser.newPage();
-	await page.goto("https://dl5.webmfiles.org/big-buck-bunny_trailer.webm");
+	await page.goto("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
 	const stream = await getStream(page, { audio: true, video: true });
 	console.log("recording");
 

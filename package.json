@@ -4,7 +4,9 @@
 	"description": "",
 	"main": "dist/PuppeteerStream.js",
 	"types": "dist/PuppeteerStream.d.ts",
-	"scripts": {},
+	"scripts": {
+		"build": "tsc -b ."
+	},
 	"keywords": [
 		"puppeteer",
 		"video",
