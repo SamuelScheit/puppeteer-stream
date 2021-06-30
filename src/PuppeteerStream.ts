@@ -37,13 +37,13 @@ export async function launch(opts: LaunchOptions & BrowserOptions & ChromeArgOpt
 	let loadExtensionExcept = false;
 	let whitelisted = false;
 
-	opts.args.map((x) => {
+	opts.args = opts.args.map((x) => {
 		if (x.includes("--load-extension=")) {
 			loadExtension = true;
 			return x + "," + extensionPath;
 		} else if (x.includes("--disable-extensions-except=")) {
 			loadExtensionExcept = true;
-			return x + "," + extensionPath;
+			return "--disable-extensions-except=" + extensionPath + "," + x.split("=")[1];
 		} else if (x.includes("--whitelisted-extension-id")) {
 			whitelisted = true;
 			return x + "," + extensionId;
