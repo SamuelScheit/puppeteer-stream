@@ -64,11 +64,11 @@ export async function launch(opts: LaunchOptions & BrowserOptions & ChromeArgOpt
 	// @ts-ignore
 	browser.encoders = new Map();
 
-	const targets = browser.targets();
-	const extensionTarget = targets.find(
+	const extensionTarget = await browser.waitForTarget(
 		// @ts-ignore
 		(target) => target.type() === "background_page" && target._targetInfo.title === "Video Capture"
 	);
+
 	// @ts-ignore
 	browser.videoCaptureExtension = await extensionTarget.page();
 
