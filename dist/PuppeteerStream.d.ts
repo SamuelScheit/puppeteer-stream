@@ -5,7 +5,7 @@ export declare class Stream extends Readable {
     private page;
     constructor(page: Page, options?: ReadableOptions);
     _read(): void;
-    destroy(): Promise<void>;
+    destroy(page?: Page): Promise<void>;
 }
 declare module "puppeteer" {
     interface Page {

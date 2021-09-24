@@ -3,16 +3,7 @@
 
 const recorders = {};
 
-function START_RECORDING({
-	index,
-	video,
-	audio,
-	frameSize,
-	audioBitsPerSecond,
-	videoBitsPerSecond,
-	bitsPerSecond,
-	mimeType,
-}) {
+function START_RECORDING({ index, video, audio, frameSize, audioBitsPerSecond, videoBitsPerSecond, bitsPerSecond, mimeType }) {
 	chrome.tabCapture.capture(
 		{
 			audio,
@@ -67,6 +58,7 @@ function START_RECORDING({
 }
 
 function STOP_RECORDING(index) {
+	//chrome.extension.getBackgroundPage().console.log(recorders)
 	if (!recorders[index]) return;
 	recorders[index].stop();
 }
