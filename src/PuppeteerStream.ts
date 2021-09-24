@@ -9,13 +9,19 @@ export class Stream extends Readable {
 
 	_read() {}
 
-	destroy() {
+	// @ts-ignore
+	async destroy(page: Page) {
 		super.destroy();
-		// TODO: do not destory page just stop recording
-		// await page.evaluate((filename) => {
-		// 	window.postMessage({ type: "REC_STOP" }, "*");
-		// }, exportname);
-		return this.page.close();
+		// @ts-ignore
+		await (<Page>page.browser().videoCaptureExtension).evaluate(
+			// @ts-ignore
+			(index) => {
+				// @ts-ignore
+				STOP_RECORDING(index);
+			},
+			// @ts-ignore
+			page._id
+		);
 	}
 }
 
