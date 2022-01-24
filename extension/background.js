@@ -3,11 +3,12 @@
 
 const recorders = {};
 
-function START_RECORDING({ index, video, audio, frameSize, audioBitsPerSecond, videoBitsPerSecond, bitsPerSecond, mimeType }) {
+function START_RECORDING({ index, video, audio, frameSize, audioBitsPerSecond, videoBitsPerSecond, bitsPerSecond, mimeType, videoConstraints }) {
 	chrome.tabCapture.capture(
 		{
 			audio,
 			video,
+			videoConstraints: videoConstraints || {}
 		},
 		(stream) => {
 			if (!stream) return;
