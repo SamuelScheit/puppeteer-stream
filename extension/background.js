@@ -8,7 +8,7 @@ function START_RECORDING({ index, video, audio, frameSize, audioBitsPerSecond, v
 		{
 			audio,
 			video,
-			videoConstraints: videoConstraints || {}
+			videoConstraints
 		},
 		(stream) => {
 			if (!stream) return;
