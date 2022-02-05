@@ -32,7 +32,7 @@ declare module "puppeteer" {
 	}
 }
 
-export async function launch(opts: LaunchOptions & BrowserOptions & ChromeArgOptions) {
+export async function launch(opts: LaunchOptions & BrowserOptions & ChromeArgOptions): Promise<Browser> {
 	if (!opts) opts = {};
 
 	if (!opts.args) opts.args = [];
