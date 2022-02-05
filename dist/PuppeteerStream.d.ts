@@ -1,11 +1,11 @@
 /// <reference types="node" />
-import puppeteer, { LaunchOptions, Page, BrowserOptions, ChromeArgOptions } from "puppeteer";
+import { LaunchOptions, Browser, Page, BrowserLaunchArgumentOptions, BrowserConnectOptions } from "puppeteer";
 import { Readable, ReadableOptions } from "stream";
 export declare class Stream extends Readable {
     private page;
     constructor(page: Page, options?: ReadableOptions);
     _read(): void;
-    destroy(page?: Page): Promise<void>;
+    destroy(): Promise<void>;
 }
 declare module "puppeteer" {
     interface Page {
@@ -13,7 +13,7 @@ declare module "puppeteer" {
         getStream(opts: getStreamOptions): Promise<Stream>;
     }
 }
-export declare function launch(opts: LaunchOptions & BrowserOptions & ChromeArgOptions): Promise<puppeteer.Browser>;
+export declare function launch(opts: LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions): Promise<Browser>;
 export declare type BrowserMimeType = "audio/webm" | "audio/webm;codecs=opus" | "audio/opus" | "audio/aac" | "audio/ogg" | "audio/mp3" | "audio/pcm" | "audio/wav" | "audio/vorbis" | "video/webm" | "video/mp4";
 export interface getStreamOptions {
     audio: boolean;
