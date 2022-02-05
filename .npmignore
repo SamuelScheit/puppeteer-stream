@@ -1,2 +1,5 @@
 examples/
 test.webm
+src/
+examples
+tests/
