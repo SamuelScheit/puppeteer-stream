@@ -1,4 +1,10 @@
-import puppeteer, { LaunchOptions, Browser, Page, BrowserOptions, ChromeArgOptions } from "puppeteer";
+import puppeteer, {
+	LaunchOptions,
+	Browser,
+	Page,
+	BrowserLaunchArgumentOptions,
+	BrowserConnectOptions,
+} from "puppeteer";
 import { Readable, ReadableOptions } from "stream";
 import path from "path";
 
@@ -9,18 +15,16 @@ export class Stream extends Readable {
 
 	_read() {}
 
-	// @ts-ignore
-	async destroy(page: Page = this.page) {
+	async destroy() {
 		super.destroy();
 		// @ts-ignore
-		await (<Page>page.browser().videoCaptureExtension).evaluate(
-			// @ts-ignore
-			(index) => {
+		await this.page.browser().videoCaptureExtension.evaluate(
+			(index: string) => {
 				// @ts-ignore
 				STOP_RECORDING(index);
 			},
 			// @ts-ignore
-			page._id
+			this.page._id
 		);
 	}
 }
@@ -32,7 +36,9 @@ declare module "puppeteer" {
 	}
 }
 
-export async function launch(opts: LaunchOptions & BrowserOptions & ChromeArgOptions): Promise<Browser> {
+export async function launch(
+	opts: LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions
+): Promise<Browser> {
 	if (!opts) opts = {};
 
 	if (!opts.args) opts.args = [];
