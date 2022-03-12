@@ -25,12 +25,8 @@ async function test() {
 	stream.pipe(ffmpeg.stdin);
 
 	setTimeout(async () => {
-		await stream.destroy();
-		stream.on("end", () => {});
-		// ffmpeg.stdin.setEncoding("utf8");
-		// ffmpeg.stdin.write("q");
-		// ffmpeg.stdin.end();
-		// ffmpeg.kill();
+		await stream.unpipe(ffmpeg);
+		ffmpeg.kill();
 
 		console.log("finished");
 	}, 1000 * 10);
