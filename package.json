@@ -19,7 +19,7 @@
 	"repository": {
 		"url": "https://github.com/Flam3rboy/puppeteer-stream"
 	},
-	"license": "ISC",
+	"license": "MIT",
 	"dependencies": {
 		"puppeteer": "^13.1.3"
 	},
