@@ -88,3 +88,4 @@ test();
 
 ### [Stream to Discord](/examples/discord.js)
 ### [Stream Spotify](https://www.npmjs.com/package/spotify-playback-sdk-node)
+### [Use puppeteer-extra plugins](/examples/puppeteer-extra.js)
