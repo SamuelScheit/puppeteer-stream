@@ -7,5 +7,5 @@
 		"persistent": true,
 		"scripts": ["background.js"]
 	},
-	"permissions": ["tabs", "<all_urls>", "tabCapture"]
+	"permissions": ["tabs", "<all_urls>", "tabCapture", "storage"]
 }
