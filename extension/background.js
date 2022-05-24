@@ -1,6 +1,20 @@
 // @ts-nocheck
 /* global chrome, MediaRecorder, FileReader */
 
+// need to reload extension when puppeteer-extra plugin is provided
+ chrome.storage.local.get(/* String or Array */["done"], function(items){
+ 	let done = items?.done;
+	setTimeout(() => {
+		console.log(done)
+		if (done) return;
+		chrome.storage.local.set({ "done": true }, function(){
+ 			chrome.runtime.reload ()
+		});
+	 }, 1000);
+});
+
+
+ 
 const recorders = {};
 
 function START_RECORDING({ index, video, audio, frameSize, audioBitsPerSecond, videoBitsPerSecond, bitsPerSecond, mimeType, videoConstraints }) {
@@ -80,3 +94,5 @@ function arrayBufferToString(buffer) {
 	}
 	return result;
 }
+
+
