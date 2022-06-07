@@ -40,7 +40,7 @@ export async function launch(
 	arg1:
 		| (LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions)
 		| any,
-	opts: LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions
+	opts?: LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions
 ): Promise<Browser> {
 	//if puppeteer library is not passed as first argument, then first argument is options
 	if (typeof arg1.launch != "function") {
