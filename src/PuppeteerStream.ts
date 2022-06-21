@@ -8,6 +8,14 @@ import puppeteer, {
 import { Readable, ReadableOptions } from "stream";
 import path from "path";
 
+type StreamingBrowser = Browser & {
+	videoCaptureExtension?: Page,
+	encoders?: Map<string, Stream>
+};
+
+declare function START_RECORDING(opts: getStreamOptions & {index: string}): void;
+declare function STOP_RECORDING(index: string): void;
+
 export class Stream extends Readable {
 	constructor(private page: Page, options?: ReadableOptions) {
 		super(options);
@@ -17,13 +25,10 @@ export class Stream extends Readable {
 
 	async destroy() {
 		super.destroy();
-		// @ts-ignore
-		await this.page.browser().videoCaptureExtension.evaluate(
+		await (this.page.browser() as StreamingBrowser).videoCaptureExtension.evaluate(
 			(index: string) => {
-				// @ts-ignore
 				STOP_RECORDING(index);
 			},
-			// @ts-ignore
 			this.page._id
 		);
 	}
@@ -31,6 +36,7 @@ export class Stream extends Readable {
 
 declare module "puppeteer" {
 	interface Page {
+		_id: string;
 		index: number;
 		getStream(opts: getStreamOptions): Promise<Stream>;
 	}
@@ -85,29 +91,27 @@ export async function launch(
 
 	opts.headless = false;
 
-	let browser : Browser;
+	let browser : StreamingBrowser;
+
 	if (typeof arg1.launch == "function") {
 		browser = await arg1.launch(opts);
 	} else {
-		browser = await puppeteer.launch(opts); 
+		browser = await puppeteer.launch(opts);
 	}
-	// @ts-ignore
+
 	browser.encoders = new Map();
 
 	const extensionTarget = await browser.waitForTarget(
-		// @ts-ignore
-		(target) => target.type() === "background_page" && target._targetInfo.title === "Video Capture"
+		(target) => target.type() === "background_page" && target._getTargetInfo().title === "Video Capture"
 	);
 
-	// @ts-ignore
 	browser.videoCaptureExtension = await extensionTarget.page();
 
-	// @ts-ignore
 	await browser.videoCaptureExtension.exposeFunction(
 		"sendData",
 		(opts: any) => {
 			const data = Buffer.from(str2ab(opts.data));
-			// @ts-ignore
+
 			browser.encoders.get(opts.id).push(data);
 		}
 	);
@@ -149,30 +153,25 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 	if (!opts.frameSize) opts.frameSize = 20;
 
 	await page.bringToFront();
-	// @ts-ignore
 
-	await (<Page>page.browser().videoCaptureExtension).evaluate(
+	await (<Page>(page.browser() as StreamingBrowser).videoCaptureExtension).evaluate(
 		(settings) => {
-			// @ts-ignore
 			START_RECORDING(settings);
 		},
-		// @ts-ignore
 		{ ...opts, index: page._id }
 	);
 
-	// @ts-ignore
-	page.browser().encoders.set(page._id, encoder);
+	(page.browser() as StreamingBrowser).encoders.set(page._id, encoder);
 
 	return encoder;
 }
 
+// Convert a UTF-8 String to an ArrayBuffer
 function str2ab(str: any) {
-	// Convert a UTF-8 String to an ArrayBuffer
+	const buf = new ArrayBuffer(str.length); // 1 byte for each char
+	const bufView = new Uint8Array(buf);
 
-	var buf = new ArrayBuffer(str.length); // 1 byte for each char
-	var bufView = new Uint8Array(buf);
-
-	for (var i = 0, strLen = str.length; i < strLen; i++) {
+	for (let i = 0, strLen = str.length; i < strLen; i++) {
 		bufView[i] = str.charCodeAt(i);
 	}
 	return buf;

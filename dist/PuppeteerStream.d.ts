@@ -9,6 +9,7 @@ export declare class Stream extends Readable {
 }
 declare module "puppeteer" {
     interface Page {
+        _id: string;
         index: number;
         getStream(opts: getStreamOptions): Promise<Stream>;
     }
