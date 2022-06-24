@@ -1,4 +1,5 @@
-import puppeteer, {
+import {
+	launch as puppeteerLaunch,
 	LaunchOptions,
 	Browser,
 	Page,
@@ -6,26 +7,30 @@ import puppeteer, {
 	BrowserConnectOptions,
 } from "puppeteer";
 import { Readable, ReadableOptions } from "stream";
-import path from "path";
+import * as path from "path";
+import * as url from 'url';
+
+type PageWithExtension = Omit<Page, 'browser'> & { browser(): BrowserWithExtension };
+
+let currentIndex = 0;
 
 export class Stream extends Readable {
-	constructor(private page: Page, options?: ReadableOptions) {
+	constructor(private page:PageWithExtension, options?: ReadableOptions) {
 		super(options);
 	}
 
 	_read() {}
 
-	async destroy() {
+	destroy() {
 		super.destroy();
-		// @ts-ignore
-		await this.page.browser().videoCaptureExtension.evaluate(
-			(index: string) => {
+		this.page.browser().videoCaptureExtension?.evaluate(
+			(index) => {
 				// @ts-ignore
 				STOP_RECORDING(index);
 			},
-			// @ts-ignore
-			this.page._id
+			this.page.index
 		);
+		return this;
 	}
 }
 
@@ -35,6 +40,8 @@ declare module "puppeteer" {
 		getStream(opts: getStreamOptions): Promise<Stream>;
 	}
 }
+
+type BrowserWithExtension = Browser & { encoders?: Map<number,Stream>; videoCaptureExtension?: Page};
 
 export async function launch(
 	arg1:
@@ -51,7 +58,7 @@ export async function launch(
 
 	if (!opts.args) opts.args = [];
 
-	const extensionPath = path.join(__dirname, "..", "extension");
+	const extensionPath = path.join(url.fileURLToPath(new URL('.', import.meta.url)), "..", "extension");
 	const extensionId = "jjndjgheafjngoipoacpjgeicjeomjli";
 	let loadExtension = false;
 	let loadExtensionExcept = false;
@@ -85,30 +92,39 @@ export async function launch(
 
 	opts.headless = false;
 
-	let browser : Browser;
+	let browser : BrowserWithExtension;
 	if (typeof arg1.launch == "function") {
 		browser = await arg1.launch(opts);
 	} else {
-		browser = await puppeteer.launch(opts); 
+		browser = await puppeteerLaunch(opts);
 	}
-	// @ts-ignore
 	browser.encoders = new Map();
 
-	const extensionTarget = await browser.waitForTarget(
-		// @ts-ignore
-		(target) => target.type() === "background_page" && target._targetInfo.title === "Video Capture"
-	);
+	const targets = await browser.targets();
+	const extensionTarget = targets.find((t) => {
+		return t._getTargetInfo().title === "Video Capture" && t.type() === 'background_page';
+	});
+	
+	if (!extensionTarget) { throw new Error('cannot load extension'); }
 
-	// @ts-ignore
-	browser.videoCaptureExtension = await extensionTarget.page();
+	const videoCaptureExtension = await extensionTarget.page();
 
-	// @ts-ignore
+	if (!videoCaptureExtension) { throw new Error('cannot get page of extension'); }
+
+	browser.videoCaptureExtension = videoCaptureExtension;
+
 	await browser.videoCaptureExtension.exposeFunction(
 		"sendData",
 		(opts: any) => {
 			const data = Buffer.from(str2ab(opts.data));
-			// @ts-ignore
-			browser.encoders.get(opts.id).push(data);
+			browser.encoders?.get(opts.id)?.push(data);
+		}
+	);
+
+	await browser.videoCaptureExtension.exposeFunction(
+		"log",
+		(...opts: any) => {
+			console.log('videoCaptureExtension', ...opts);
 		}
 	);
 
@@ -138,7 +154,7 @@ export interface getStreamOptions {
 	frameSize?: number;
 }
 
-export async function getStream(page: Page, opts: getStreamOptions) {
+export async function getStream(page: PageWithExtension, opts: getStreamOptions) {
 	const encoder = new Stream(page);
 	if (!opts.audio && !opts.video)
 		throw new Error("At least audio or video must be true");
@@ -149,19 +165,19 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 	if (!opts.frameSize) opts.frameSize = 20;
 
 	await page.bringToFront();
-	// @ts-ignore
 
-	await (<Page>page.browser().videoCaptureExtension).evaluate(
+	if (page.index === undefined) {
+		page.index = currentIndex++;
+	}
+
+	await page.browser().videoCaptureExtension?.evaluate(
 		(settings) => {
 			// @ts-ignore
 			START_RECORDING(settings);
 		},
-		// @ts-ignore
-		{ ...opts, index: page._id }
+		{ ...opts, index: page.index }
 	);
-
-	// @ts-ignore
-	page.browser().encoders.set(page._id, encoder);
+	page.browser().encoders?.set(page.index, encoder);
 
 	return encoder;
 }
