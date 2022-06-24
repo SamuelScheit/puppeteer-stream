@@ -15,7 +15,7 @@ type PageWithExtension = Omit<Page, 'browser'> & { browser(): BrowserWithExtensi
 let currentIndex = 0;
 
 export class Stream extends Readable {
-	constructor(private page:PageWithExtension, options?: ReadableOptions) {
+	constructor(private page: PageWithExtension, options?: ReadableOptions) {
 		super(options);
 	}
 
@@ -58,7 +58,7 @@ export async function launch(
 
 	if (!opts.args) opts.args = [];
 
-	const extensionPath = path.join(url.fileURLToPath(new URL('.', import.meta.url)), "..", "extension");
+	const extensionPath = path.join(__dirname, "..", "extension");
 	const extensionId = "jjndjgheafjngoipoacpjgeicjeomjli";
 	let loadExtension = false;
 	let loadExtensionExcept = false;
