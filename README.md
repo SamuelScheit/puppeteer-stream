@@ -11,7 +11,7 @@ An Extension for Puppeteer to retrieve audio and/or video streams of a page
 
 ```
 npm i puppeteer-stream
-# or "yarn add puppeteer"
+# or "yarn add puppeteer-stream"
 ```
 
 ## Usage
