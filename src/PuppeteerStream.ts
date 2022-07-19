@@ -4,7 +4,7 @@ import puppeteer, {
 	Page,
 	BrowserLaunchArgumentOptions,
 	BrowserConnectOptions,
-} from "puppeteer";
+} from "puppeteer-core";
 import { Readable, ReadableOptions } from "stream";
 import path from "path";
 
@@ -29,7 +29,7 @@ export class Stream extends Readable {
 	}
 }
 
-declare module "puppeteer" {
+declare module "puppeteer-core" {
 	interface Page {
 		index: number;
 		getStream(opts: getStreamOptions): Promise<Stream>;
@@ -89,7 +89,7 @@ export async function launch(
 	if (typeof arg1.launch == "function") {
 		browser = await arg1.launch(opts);
 	} else {
-		browser = await puppeteer.launch(opts); 
+		browser = await puppeteer.launch(opts);
 	}
 	// @ts-ignore
 	browser.encoders = new Map();
