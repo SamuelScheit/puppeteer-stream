@@ -1,7 +1,9 @@
+const utils = require('./_utils');
+
 async function videoRecorder() {
 	const { getStream, launch } = require("../dist/PuppeteerStream");
-    const puppeteer = require("puppeteer");
-    
+    const puppeteer = require("puppeteer-core");
+
 	const fs = require("fs");
 
 	const filename = `./test.webm`;
@@ -9,7 +11,7 @@ async function videoRecorder() {
 	const file = fs.createWriteStream(filename);
 
 	const browser = await launch(puppeteer, {
-		executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+		executablePath: utils.getExecutablePath(),
 		headless: true,
 		defaultViewport: null,
 		devtools: true,
@@ -32,6 +34,7 @@ async function videoRecorder() {
 	setTimeout(async () => {
 		await stream.destroy();
 		file.close();
+		await browser.close();
 		console.log("finished");
 	}, 10000);
 }

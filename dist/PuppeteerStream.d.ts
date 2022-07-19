@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { LaunchOptions, Browser, Page, BrowserLaunchArgumentOptions, BrowserConnectOptions } from "puppeteer";
+import { LaunchOptions, Browser, Page, BrowserLaunchArgumentOptions, BrowserConnectOptions } from "puppeteer-core";
 import { Readable, ReadableOptions } from "stream";
 export declare class Stream extends Readable {
     private page;
@@ -7,7 +7,7 @@ export declare class Stream extends Readable {
     _read(): void;
     destroy(): Promise<void>;
 }
-declare module "puppeteer" {
+declare module "puppeteer-core" {
     interface Page {
         index: number;
         getStream(opts: getStreamOptions): Promise<Stream>;
