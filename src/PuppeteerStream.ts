@@ -96,7 +96,7 @@ export async function launch(
 
 	const extensionTarget = await browser.waitForTarget(
 		// @ts-ignore
-		(target) => target.type() === "background_page" && target._targetInfo.title === "Video Capture"
+		(target) => target.type() === "background_page" && target.url() === `chrome-extension://${extensionId}/_generated_background_page.html`
 	);
 
 	// @ts-ignore
