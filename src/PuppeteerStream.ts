@@ -15,6 +15,7 @@ export class Stream extends Readable {
 
 	_read() {}
 
+	// @ts-ignore
 	async destroy() {
 		super.destroy();
 		// @ts-ignore
@@ -37,9 +38,7 @@ declare module "puppeteer-core" {
 }
 
 export async function launch(
-	arg1:
-		| (LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions)
-		| any,
+	arg1: (LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions) | any,
 	opts?: LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions
 ): Promise<Browser> {
 	//if puppeteer library is not passed as first argument, then first argument is options
@@ -63,9 +62,7 @@ export async function launch(
 			return x + "," + extensionPath;
 		} else if (x.includes("--disable-extensions-except=")) {
 			loadExtensionExcept = true;
-			return (
-				"--disable-extensions-except=" + extensionPath + "," + x.split("=")[1]
-			);
+			return "--disable-extensions-except=" + extensionPath + "," + x.split("=")[1];
 		} else if (x.includes("--whitelisted-extension-id")) {
 			whitelisted = true;
 			return x + "," + extensionId;
@@ -75,17 +72,14 @@ export async function launch(
 	});
 
 	if (!loadExtension) opts.args.push("--load-extension=" + extensionPath);
-	if (!loadExtensionExcept)
-		opts.args.push("--disable-extensions-except=" + extensionPath);
+	if (!loadExtensionExcept) opts.args.push("--disable-extensions-except=" + extensionPath);
 	if (!whitelisted) opts.args.push("--whitelisted-extension-id=" + extensionId);
 	if (opts.defaultViewport?.width && opts.defaultViewport?.height)
-		opts.args.push(
-			`--window-size=${opts.defaultViewport?.width}x${opts.defaultViewport?.height}`
-		);
+		opts.args.push(`--window-size=${opts.defaultViewport?.width}x${opts.defaultViewport?.height}`);
 
 	opts.headless = false;
 
-	let browser : Browser;
+	let browser: Browser;
 	if (typeof arg1.launch == "function") {
 		browser = await arg1.launch(opts);
 	} else {
@@ -96,21 +90,20 @@ export async function launch(
 
 	const extensionTarget = await browser.waitForTarget(
 		// @ts-ignore
-		(target) => target.type() === "background_page" && target._targetInfo.title === "Video Capture"
+		(target) =>
+			target.type() === "background_page" &&
+			target.url() === `chrome-extension://${extensionId}/_generated_background_page.html`
 	);
 
 	// @ts-ignore
 	browser.videoCaptureExtension = await extensionTarget.page();
 
 	// @ts-ignore
-	await browser.videoCaptureExtension.exposeFunction(
-		"sendData",
-		(opts: any) => {
-			const data = Buffer.from(str2ab(opts.data));
-			// @ts-ignore
-			browser.encoders.get(opts.id).push(data);
-		}
-	);
+	await browser.videoCaptureExtension.exposeFunction("sendData", (opts: any) => {
+		const data = Buffer.from(str2ab(opts.data));
+		// @ts-ignore
+		browser.encoders.get(opts.id).push(data);
+	});
 
 	return browser;
 }
@@ -142,8 +135,7 @@ export interface getStreamOptions {
 
 export async function getStream(page: Page, opts: getStreamOptions) {
 	const encoder = new Stream(page);
-	if (!opts.audio && !opts.video)
-		throw new Error("At least audio or video must be true");
+	if (!opts.audio && !opts.video) throw new Error("At least audio or video must be true");
 	if (!opts.mimeType) {
 		if (opts.video) opts.mimeType = "video/webm";
 		else if (opts.audio) opts.mimeType = "audio/webm";
