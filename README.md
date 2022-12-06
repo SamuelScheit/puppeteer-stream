@@ -43,6 +43,14 @@ The method `getStream(options)` takes the following options
 	videoBitsPerSecond?: number; // The chosen bitrate for the video component of the media.
 	bitsPerSecond?: number; // The chosen bitrate for the audio and video components of the media. This can be specified instead of the above two properties. If this is specified along with one or the other of the above properties, this will be used for the one that isn't specified.
 	frameSize?: number = 20; // The number of milliseconds to record into each packet.
+  	videoConstraints: {
+		mandatory: {
+			minWidth?: number,
+			minHeight?:number,
+			maxWidth?:number,
+			maxHeight?:number,
+		},
+	},
 }
 ```
 and returns a `Promise<`[`Readable`](/dist/PuppeteerStream.d.ts#L4)`>`
