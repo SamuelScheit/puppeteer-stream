@@ -1,4 +1,5 @@
-import puppeteer, {
+import {
+	launch as puppeteerLaunch,
 	LaunchOptions,
 	Browser,
 	Page,
@@ -6,10 +7,14 @@ import puppeteer, {
 	BrowserConnectOptions,
 } from "puppeteer-core";
 import { Readable, ReadableOptions } from "stream";
-import path from "path";
+import * as path from "path";
+
+type PageWithExtension = Omit<Page, "browser"> & { browser(): BrowserWithExtension };
+
+let currentIndex = 0;
 
 export class Stream extends Readable {
-	constructor(private page: Page, options?: ReadableOptions) {
+	constructor(private page: PageWithExtension, options?: ReadableOptions) {
 		super(options);
 	}
 
@@ -17,16 +22,12 @@ export class Stream extends Readable {
 
 	// @ts-ignore
 	async destroy() {
-		super.destroy();
-		// @ts-ignore
-		await this.page.browser().videoCaptureExtension.evaluate(
-			(index: string) => {
-				// @ts-ignore
-				STOP_RECORDING(index);
-			},
+		await this.page.browser().videoCaptureExtension?.evaluate((index) => {
 			// @ts-ignore
-			this.page._id
-		);
+			STOP_RECORDING(index);
+		}, this.page.index);
+		super.destroy();
+		return this;
 	}
 }
 
@@ -36,6 +37,8 @@ declare module "puppeteer-core" {
 		getStream(opts: getStreamOptions): Promise<Stream>;
 	}
 }
+
+type BrowserWithExtension = Browser & { encoders?: Map<number, Stream>; videoCaptureExtension?: Page };
 
 export async function launch(
 	arg1: (LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions) | any,
@@ -79,13 +82,12 @@ export async function launch(
 
 	opts.headless = false;
 
-	let browser: Browser;
+	let browser: BrowserWithExtension;
 	if (typeof arg1.launch == "function") {
 		browser = await arg1.launch(opts);
 	} else {
-		browser = await puppeteer.launch(opts);
+		browser = await puppeteerLaunch(opts);
 	}
-	// @ts-ignore
 	browser.encoders = new Map();
 
 	const extensionTarget = await browser.waitForTarget(
@@ -95,14 +97,25 @@ export async function launch(
 			target.url() === `chrome-extension://${extensionId}/_generated_background_page.html`
 	);
 
-	// @ts-ignore
-	browser.videoCaptureExtension = await extensionTarget.page();
+	if (!extensionTarget) {
+		throw new Error("cannot load extension");
+	}
 
-	// @ts-ignore
+	const videoCaptureExtension = await extensionTarget.page();
+
+	if (!videoCaptureExtension) {
+		throw new Error("cannot get page of extension");
+	}
+
+	browser.videoCaptureExtension = videoCaptureExtension;
+
 	await browser.videoCaptureExtension.exposeFunction("sendData", (opts: any) => {
 		const data = Buffer.from(str2ab(opts.data));
-		// @ts-ignore
-		browser.encoders.get(opts.id).push(data);
+		browser.encoders?.get(opts.id)?.push(data);
+	});
+
+	await browser.videoCaptureExtension.exposeFunction("log", (...opts: any) => {
+		console.log("videoCaptureExtension", ...opts);
 	});
 
 	return browser;
@@ -133,7 +146,7 @@ export interface getStreamOptions {
 	frameSize?: number;
 }
 
-export async function getStream(page: Page, opts: getStreamOptions) {
+export async function getStream(page: PageWithExtension, opts: getStreamOptions) {
 	const encoder = new Stream(page);
 	if (!opts.audio && !opts.video) throw new Error("At least audio or video must be true");
 	if (!opts.mimeType) {
@@ -143,19 +156,19 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 	if (!opts.frameSize) opts.frameSize = 20;
 
 	await page.bringToFront();
-	// @ts-ignore
 
-	await (<Page>page.browser().videoCaptureExtension).evaluate(
+	if (page.index === undefined) {
+		page.index = currentIndex++;
+	}
+
+	await page.browser().videoCaptureExtension?.evaluate(
 		(settings) => {
 			// @ts-ignore
 			START_RECORDING(settings);
 		},
-		// @ts-ignore
-		{ ...opts, index: page._id }
+		{ ...opts, index: page.index }
 	);
-
-	// @ts-ignore
-	page.browser().encoders.set(page._id, encoder);
+	page.browser().encoders?.set(page.index, encoder);
 
 	return encoder;
 }

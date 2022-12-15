@@ -1,4 +1,4 @@
-const utils = require('./_utils');
+const utils = require("./_utils");
 
 async function videoRecorder() {
 	const { getStream, launch } = require("../dist/PuppeteerStream");
@@ -30,7 +30,7 @@ async function videoRecorder() {
 	stream.pipe(file);
 
 	setTimeout(async () => {
-    await stream.destroy();
+		await stream.destroy();
 		file.close();
 		await browser.close();
 		console.log("finished");
