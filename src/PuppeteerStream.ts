@@ -8,9 +8,8 @@ import {
 } from "puppeteer-core";
 import { Readable, ReadableOptions } from "stream";
 import * as path from "path";
-import * as url from 'url';
 
-type PageWithExtension = Omit<Page, 'browser'> & { browser(): BrowserWithExtension };
+type PageWithExtension = Omit<Page, "browser"> & { browser(): BrowserWithExtension };
 
 let currentIndex = 0;
 
@@ -23,14 +22,11 @@ export class Stream extends Readable {
 
 	// @ts-ignore
 	async destroy() {
+		await this.page.browser().videoCaptureExtension?.evaluate((index) => {
+			// @ts-ignore
+			STOP_RECORDING(index);
+		}, this.page.index);
 		super.destroy();
-		this.page.browser().videoCaptureExtension?.evaluate(
-			(index) => {
-				// @ts-ignore
-				STOP_RECORDING(index);
-			},
-			this.page.index
-		);
 		return this;
 	}
 }
@@ -42,7 +38,7 @@ declare module "puppeteer-core" {
 	}
 }
 
-type BrowserWithExtension = Browser & { encoders?: Map<number,Stream>; videoCaptureExtension?: Page};
+type BrowserWithExtension = Browser & { encoders?: Map<number, Stream>; videoCaptureExtension?: Page };
 
 export async function launch(
 	arg1: (LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions) | any,
@@ -86,11 +82,11 @@ export async function launch(
 
 	opts.headless = false;
 
-	let browser: Browser;
+	let browser: BrowserWithExtension;
 	if (typeof arg1.launch == "function") {
 		browser = await arg1.launch(opts);
 	} else {
-		browser = await puppeteer.launch(opts);
+		browser = await puppeteerLaunch(opts);
 	}
 	browser.encoders = new Map();
 
@@ -100,33 +96,27 @@ export async function launch(
 			target.type() === "background_page" &&
 			target.url() === `chrome-extension://${extensionId}/_generated_background_page.html`
 	);
-  
-   if (!extensionTarget) {
-    throw new Error("cannot load extension");
-  }
 
-  const videoCaptureExtension = await extensionTarget.page();
+	if (!extensionTarget) {
+		throw new Error("cannot load extension");
+	}
 
-  if (!videoCaptureExtension) {
-    throw new Error("cannot get page of extension");
-  }
+	const videoCaptureExtension = await extensionTarget.page();
+
+	if (!videoCaptureExtension) {
+		throw new Error("cannot get page of extension");
+	}
 
 	browser.videoCaptureExtension = videoCaptureExtension;
 
-	await browser.videoCaptureExtension.exposeFunction(
-		"sendData",
-		(opts: any) => {
-			const data = Buffer.from(str2ab(opts.data));
-			browser.encoders?.get(opts.id)?.push(data);
-		}
-	);
+	await browser.videoCaptureExtension.exposeFunction("sendData", (opts: any) => {
+		const data = Buffer.from(str2ab(opts.data));
+		browser.encoders?.get(opts.id)?.push(data);
+	});
 
-	await browser.videoCaptureExtension.exposeFunction(
-		"log",
-		(...opts: any) => {
-			console.log('videoCaptureExtension', ...opts);
-		}
-	);
+	await browser.videoCaptureExtension.exposeFunction("log", (...opts: any) => {
+		console.log("videoCaptureExtension", ...opts);
+	});
 
 	return browser;
 }
