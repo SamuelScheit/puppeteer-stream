@@ -5,7 +5,7 @@ import {
 	Page,
 	BrowserLaunchArgumentOptions,
 	BrowserConnectOptions,
-} from "puppeteer";
+} from "puppeteer-core";
 import { Readable, ReadableOptions } from "stream";
 import * as path from "path";
 import * as url from 'url';
@@ -21,7 +21,8 @@ export class Stream extends Readable {
 
 	_read() {}
 
-	destroy() {
+	// @ts-ignore
+	async destroy() {
 		super.destroy();
 		this.page.browser().videoCaptureExtension?.evaluate(
 			(index) => {
@@ -34,7 +35,7 @@ export class Stream extends Readable {
 	}
 }
 
-declare module "puppeteer" {
+declare module "puppeteer-core" {
 	interface Page {
 		index: number;
 		getStream(opts: getStreamOptions): Promise<Stream>;
@@ -44,9 +45,7 @@ declare module "puppeteer" {
 type BrowserWithExtension = Browser & { encoders?: Map<number,Stream>; videoCaptureExtension?: Page};
 
 export async function launch(
-	arg1:
-		| (LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions)
-		| any,
+	arg1: (LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions) | any,
 	opts?: LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions
 ): Promise<Browser> {
 	//if puppeteer library is not passed as first argument, then first argument is options
@@ -70,9 +69,7 @@ export async function launch(
 			return x + "," + extensionPath;
 		} else if (x.includes("--disable-extensions-except=")) {
 			loadExtensionExcept = true;
-			return (
-				"--disable-extensions-except=" + extensionPath + "," + x.split("=")[1]
-			);
+			return "--disable-extensions-except=" + extensionPath + "," + x.split("=")[1];
 		} else if (x.includes("--whitelisted-extension-id")) {
 			whitelisted = true;
 			return x + "," + extensionId;
@@ -82,34 +79,37 @@ export async function launch(
 	});
 
 	if (!loadExtension) opts.args.push("--load-extension=" + extensionPath);
-	if (!loadExtensionExcept)
-		opts.args.push("--disable-extensions-except=" + extensionPath);
+	if (!loadExtensionExcept) opts.args.push("--disable-extensions-except=" + extensionPath);
 	if (!whitelisted) opts.args.push("--whitelisted-extension-id=" + extensionId);
 	if (opts.defaultViewport?.width && opts.defaultViewport?.height)
-		opts.args.push(
-			`--window-size=${opts.defaultViewport?.width}x${opts.defaultViewport?.height}`
-		);
+		opts.args.push(`--window-size=${opts.defaultViewport?.width}x${opts.defaultViewport?.height}`);
 
 	opts.headless = false;
 
-	let browser : BrowserWithExtension;
+	let browser: Browser;
 	if (typeof arg1.launch == "function") {
 		browser = await arg1.launch(opts);
 	} else {
-		browser = await puppeteerLaunch(opts);
+		browser = await puppeteer.launch(opts);
 	}
 	browser.encoders = new Map();
 
-	const targets = await browser.targets();
-	const extensionTarget = targets.find((t) => {
-		return t._getTargetInfo().title === "Video Capture" && t.type() === 'background_page';
-	});
-	
-	if (!extensionTarget) { throw new Error('cannot load extension'); }
+	const extensionTarget = await browser.waitForTarget(
+		// @ts-ignore
+		(target) =>
+			target.type() === "background_page" &&
+			target.url() === `chrome-extension://${extensionId}/_generated_background_page.html`
+	);
+  
+   if (!extensionTarget) {
+    throw new Error("cannot load extension");
+  }
 
-	const videoCaptureExtension = await extensionTarget.page();
+  const videoCaptureExtension = await extensionTarget.page();
 
-	if (!videoCaptureExtension) { throw new Error('cannot get page of extension'); }
+  if (!videoCaptureExtension) {
+    throw new Error("cannot get page of extension");
+  }
 
 	browser.videoCaptureExtension = videoCaptureExtension;
 
@@ -132,17 +132,19 @@ export async function launch(
 }
 
 export type BrowserMimeType =
+	| "video/webm"
+	| "video/webm;codecs=vp8"
+	| "video/webm;codecs=vp9"
+	| "video/webm;codecs=vp8.0"
+	| "video/webm;codecs=vp9.0"
+	| "video/webm;codecs=vp8,opus"
+	| "video/webm;codecs=vp8,pcm"
+	| "video/WEBM;codecs=VP8,OPUS"
+	| "video/webm;codecs=vp9,opus"
+	| "video/webm;codecs=vp8,vp9,opus"
 	| "audio/webm"
 	| "audio/webm;codecs=opus"
-	| "audio/opus"
-	| "audio/aac"
-	| "audio/ogg"
-	| "audio/mp3"
-	| "audio/pcm"
-	| "audio/wav"
-	| "audio/vorbis"
-	| "video/webm"
-	| "video/mp4";
+	| "audio/webm;codecs=pcm";
 
 export interface getStreamOptions {
 	audio: boolean;
@@ -156,8 +158,7 @@ export interface getStreamOptions {
 
 export async function getStream(page: PageWithExtension, opts: getStreamOptions) {
 	const encoder = new Stream(page);
-	if (!opts.audio && !opts.video)
-		throw new Error("At least audio or video must be true");
+	if (!opts.audio && !opts.video) throw new Error("At least audio or video must be true");
 	if (!opts.mimeType) {
 		if (opts.video) opts.mimeType = "video/webm";
 		else if (opts.audio) opts.mimeType = "audio/webm";

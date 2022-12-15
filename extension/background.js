@@ -27,7 +27,7 @@ function START_RECORDING({ index, video, audio, frameSize, audioBitsPerSecond, v
 		(stream) => {
 			if (!stream) return;
 
-			recorder = new MediaRecorder(stream, {
+			const recorder = new MediaRecorder(stream, {
 				ignoreMutedMedia: true,
 				audioBitsPerSecond,
 				videoBitsPerSecond,
