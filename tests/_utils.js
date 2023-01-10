@@ -4,6 +4,10 @@ const child_process = require('child_process');
 
 
 const getExecutablePath = () => {
+  if (process.env.CHROME_BIN) {
+    return process.env.CHROME_BIN;
+  }
+
   let executablePath;
   if (process.platform === 'linux') {
     try {
