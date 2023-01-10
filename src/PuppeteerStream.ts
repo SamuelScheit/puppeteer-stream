@@ -18,6 +18,8 @@ export class Stream extends Readable {
 		super(options);
 	}
 
+	timecode!: number;
+
 	_read() {}
 
 	// @ts-ignore
@@ -110,8 +112,14 @@ export async function launch(
 	browser.videoCaptureExtension = videoCaptureExtension;
 
 	await browser.videoCaptureExtension.exposeFunction("sendData", (opts: any) => {
+		const encoder = browser.encoders?.get(opts.id);
+		if (!encoder) {
+			return;
+		}
+
 		const data = Buffer.from(str2ab(opts.data));
-		browser.encoders?.get(opts.id)?.push(data);
+		encoder.timecode = opts.timecode;
+		encoder.push(data);
 	});
 
 	await browser.videoCaptureExtension.exposeFunction("log", (...opts: any) => {
