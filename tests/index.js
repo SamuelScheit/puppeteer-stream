@@ -27,7 +27,18 @@ async function videoRecorder() {
 		video: true,
 	});
 
-	stream.pipe(file);
+	stream.on('readable', () => {
+		let data;
+
+		while ((data = stream.read()) !== null) {
+			console.log({length: data.length, timecode: stream.timecode});
+			file.write(data);
+		}
+	});
+
+	stream.on('end', () => {
+		file.end();
+	});
 
 	setTimeout(async () => {
 		await stream.destroy();

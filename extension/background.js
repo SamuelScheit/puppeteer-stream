@@ -46,6 +46,7 @@ function START_RECORDING({ index, video, audio, frameSize, audioBitsPerSecond, v
 						window.sendData({
 							id: index,
 							data,
+							timecode: event.timecode
 						});
 					}
 				}
