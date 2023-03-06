@@ -45,7 +45,6 @@ export async function launch(
 	addToArgs("--load-extension=", extensionPath);
 	addToArgs("--disable-extensions-except=", extensionPath);
 	addToArgs("--whitelisted-extension-id=", extensionId);
-	// needed for the https2 server to receive the stream as it uses a self signed certificate
 	addToArgs("--autoplay-policy=no-user-gesture-required");
 
 	if (opts.defaultViewport?.width && opts.defaultViewport?.height)
@@ -79,8 +78,8 @@ export type BrowserMimeType =
 	| "audio/webm;codecs=pcm";
 
 export interface getStreamOptions {
-	audio: boolean;
-	video: boolean;
+	audio: boolean | MediaTrackConstraints;
+	video: boolean | MediaTrackConstraints;
 	mimeType?: BrowserMimeType;
 	audioBitsPerSecond?: number;
 	videoBitsPerSecond?: number;
