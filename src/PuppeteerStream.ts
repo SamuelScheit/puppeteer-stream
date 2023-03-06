@@ -46,7 +46,6 @@ export async function launch(
 	addToArgs("--disable-extensions-except=", extensionPath);
 	addToArgs("--whitelisted-extension-id=", extensionId);
 	// needed for the https2 server to receive the stream as it uses a self signed certificate
-	addToArgs("--ignore-certificate-errors-spki-list=", "bgCsqE/dKTUFLVdLcQ6D6sUoCtwEAu0T5QGOxQ+MS7w=");
 	addToArgs("--autoplay-policy=no-user-gesture-required");
 
 	if (opts.defaultViewport?.width && opts.defaultViewport?.height)
