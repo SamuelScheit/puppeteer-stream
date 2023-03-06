@@ -1,5 +1,6 @@
 examples/
-test.webm
+*.webm
+*.mp4
 src/
 examples
 tests/
