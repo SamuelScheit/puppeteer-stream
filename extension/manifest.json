@@ -2,10 +2,22 @@
 	"name": "Video Capture",
 	"version": "0.1.0",
 	"key": "ackedhmjjinfocdcekpnbdocpmiffaac",
-	"manifest_version": 2,
+	"manifest_version": 3,
 	"background": {
-		"persistent": true,
-		"scripts": ["background.js"]
+		"service_worker": "background.js"
 	},
-	"permissions": ["tabs", "<all_urls>", "tabCapture", "storage"]
+	"content_scripts": [
+		{
+			"matches": ["*://*/*"],
+			"js": ["content.js"]
+		}
+	],
+	"sockets": {
+		"tcp": {
+			"connect": ""
+		},
+		"udp": { "send": ["*:*"], "bind": ["*:*"] }
+	},
+	"permissions": ["tabs", "tabCapture", "storage", "activeTab", "scripting", "sockets.tcp"],
+	"host_permissions": ["*://*/*", "<all_urls>", "https://*/*", "http://*/*"]
 }

@@ -6,41 +6,13 @@ import {
 	BrowserLaunchArgumentOptions,
 	BrowserConnectOptions,
 } from "puppeteer-core";
-import { Readable, ReadableOptions } from "stream";
 import * as path from "path";
+import { Readable } from "stream";
+import dgram, { Socket } from "dgram";
 
-type PageWithExtension = Omit<Page, "browser"> & { browser(): BrowserWithExtension };
-
+const extensionPath = path.join(__dirname, "..", "extension");
+const extensionId = "jjndjgheafjngoipoacpjgeicjeomjli";
 let currentIndex = 0;
-
-export class Stream extends Readable {
-	constructor(private page: PageWithExtension, options?: ReadableOptions) {
-		super(options);
-	}
-
-	timecode!: number;
-
-	_read() {}
-
-	// @ts-ignore
-	async destroy() {
-		await this.page.browser().videoCaptureExtension?.evaluate((index) => {
-			// @ts-ignore
-			STOP_RECORDING(index);
-		}, this.page.index);
-		super.destroy();
-		return this;
-	}
-}
-
-declare module "puppeteer-core" {
-	interface Page {
-		index: number;
-		getStream(opts: getStreamOptions): Promise<Stream>;
-	}
-}
-
-type BrowserWithExtension = Browser & { encoders?: Map<number, Stream>; videoCaptureExtension?: Page };
 
 export async function launch(
 	arg1: (LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions) | any,
@@ -52,79 +24,42 @@ export async function launch(
 	}
 
 	if (!opts) opts = {};
-
 	if (!opts.args) opts.args = [];
 
-	const extensionPath = path.join(__dirname, "..", "extension");
-	const extensionId = "jjndjgheafjngoipoacpjgeicjeomjli";
-	let loadExtension = false;
-	let loadExtensionExcept = false;
-	let whitelisted = false;
-
-	opts.args = opts.args.map((x) => {
-		if (x.includes("--load-extension=")) {
-			loadExtension = true;
-			return x + "," + extensionPath;
-		} else if (x.includes("--disable-extensions-except=")) {
-			loadExtensionExcept = true;
-			return "--disable-extensions-except=" + extensionPath + "," + x.split("=")[1];
-		} else if (x.includes("--whitelisted-extension-id")) {
-			whitelisted = true;
-			return x + "," + extensionId;
+	function addToArgs(arg: string, value?: string) {
+		if (!value) {
+			if (opts.args.includes(arg)) return;
+			return opts.args.push(arg);
 		}
+		let found = false;
+		opts.args = opts.args.map((x) => {
+			if (x.includes(arg)) {
+				found = true;
+				return x + "," + value;
+			}
+			return x;
+		});
+		if (!found) opts.args.push(arg + value);
+	}
 
-		return x;
-	});
+	addToArgs("--load-extension=", extensionPath);
+	addToArgs("--disable-extensions-except=", extensionPath);
+	addToArgs("--whitelisted-extension-id=", extensionId);
+	// needed for the https2 server to receive the stream as it uses a self signed certificate
+	addToArgs("--ignore-certificate-errors-spki-list=", "bgCsqE/dKTUFLVdLcQ6D6sUoCtwEAu0T5QGOxQ+MS7w=");
+	addToArgs("--autoplay-policy=no-user-gesture-required");
 
-	if (!loadExtension) opts.args.push("--load-extension=" + extensionPath);
-	if (!loadExtensionExcept) opts.args.push("--disable-extensions-except=" + extensionPath);
-	if (!whitelisted) opts.args.push("--whitelisted-extension-id=" + extensionId);
 	if (opts.defaultViewport?.width && opts.defaultViewport?.height)
-		opts.args.push(`--window-size=${opts.defaultViewport?.width}x${opts.defaultViewport?.height}`);
+		opts.args.push(`--window-size=${opts.defaultViewport.width}x${opts.defaultViewport.height}`);
 
 	opts.headless = false;
 
-	let browser: BrowserWithExtension;
+	let browser: Browser;
 	if (typeof arg1.launch == "function") {
 		browser = await arg1.launch(opts);
 	} else {
 		browser = await puppeteerLaunch(opts);
 	}
-	browser.encoders = new Map();
-
-	const extensionTarget = await browser.waitForTarget(
-		// @ts-ignore
-		(target) =>
-			target.type() === "background_page" &&
-			target.url() === `chrome-extension://${extensionId}/_generated_background_page.html`
-	);
-
-	if (!extensionTarget) {
-		throw new Error("cannot load extension");
-	}
-
-	const videoCaptureExtension = await extensionTarget.page();
-
-	if (!videoCaptureExtension) {
-		throw new Error("cannot get page of extension");
-	}
-
-	browser.videoCaptureExtension = videoCaptureExtension;
-
-	await browser.videoCaptureExtension.exposeFunction("sendData", (opts: any) => {
-		const encoder = browser.encoders?.get(opts.id);
-		if (!encoder) {
-			return;
-		}
-
-		const data = Buffer.from(str2ab(opts.data));
-		encoder.timecode = opts.timecode;
-		encoder.push(data);
-	});
-
-	await browser.videoCaptureExtension.exposeFunction("log", (...opts: any) => {
-		console.log("videoCaptureExtension", ...opts);
-	});
 
 	return browser;
 }
@@ -152,10 +87,22 @@ export interface getStreamOptions {
 	videoBitsPerSecond?: number;
 	bitsPerSecond?: number;
 	frameSize?: number;
+	delay?: number;
 }
 
-export async function getStream(page: PageWithExtension, opts: getStreamOptions) {
-	const encoder = new Stream(page);
+async function getExtensionPage(browser: Browser) {
+	const extensionTarget = await browser.waitForTarget((target) => {
+		return target.type() === "page" && target.url() === `chrome-extension://${extensionId}/options.html`;
+	});
+	if (!extensionTarget) throw new Error("cannot load extension");
+
+	const videoCaptureExtension = await extensionTarget.page();
+	if (!videoCaptureExtension) throw new Error("cannot get page of extension");
+
+	return videoCaptureExtension;
+}
+
+export async function getStream(page: Page, opts: getStreamOptions) {
 	if (!opts.audio && !opts.video) throw new Error("At least audio or video must be true");
 	if (!opts.mimeType) {
 		if (opts.video) opts.mimeType = "video/webm";
@@ -163,32 +110,44 @@ export async function getStream(page: PageWithExtension, opts: getStreamOptions)
 	}
 	if (!opts.frameSize) opts.frameSize = 20;
 
-	await page.bringToFront();
+	const extension = await getExtensionPage(page.browser());
+	const index = currentIndex++;
 
-	if (page.index === undefined) {
-		page.index = currentIndex++;
-	}
-
-	await page.browser().videoCaptureExtension?.evaluate(
-		(settings) => {
-			// @ts-ignore
-			START_RECORDING(settings);
-		},
-		{ ...opts, index: page.index }
+	const stream = new UDPStream(55200 + index, () =>
+		// @ts-ignore
+		extension.evaluate((index) => STOP_RECORDING(index), index)
 	);
-	page.browser().encoders?.set(page.index, encoder);
 
-	return encoder;
+	await page.bringToFront();
+	extension.evaluate(
+		// @ts-ignore
+		(settings) => START_RECORDING(settings),
+		{ ...opts, index }
+	);
+
+	return stream;
 }
 
-function str2ab(str: any) {
-	// Convert a UTF-8 String to an ArrayBuffer
+class UDPStream extends Readable {
+	socket: Socket;
+	constructor(port = 55200, public onDestroy: Function) {
+		super({ highWaterMark: 1024 * 1024 * 8 });
+		this.socket = dgram
+			.createSocket("udp4", (data) => {
+				this.push(data);
+			})
+			.bind(port, "127.0.0.1", () => {});
 
-	var buf = new ArrayBuffer(str.length); // 1 byte for each char
-	var bufView = new Uint8Array(buf);
-
-	for (var i = 0, strLen = str.length; i < strLen; i++) {
-		bufView[i] = str.charCodeAt(i);
+		this.resume();
 	}
-	return buf;
+
+	_read(size: number): void {}
+
+	// @ts-ignore
+	override async destroy(error?: Error) {
+		await this.onDestroy();
+		this.socket.close();
+		super.destroy();
+		return this;
+	}
 }

@@ -1,9 +1,9 @@
 const utils = require("./_utils");
+const { getStream, launch } = require("../dist/PuppeteerStream");
+const fs = require("fs");
+const child_process = require("child_process");
 
 async function videoRecorder() {
-	const { getStream, launch } = require("../dist/PuppeteerStream");
-	const fs = require("fs");
-
 	const filename = `./test.webm`;
 
 	const file = fs.createWriteStream(filename);
@@ -13,7 +13,6 @@ async function videoRecorder() {
 		headless: true,
 		defaultViewport: null,
 		devtools: true,
-		args: ["--window-size=1920,1080", "--window-position=1921,0", "--autoplay-policy=no-user-gesture-required"],
 	});
 
 	const page = await browser.newPage();
@@ -25,26 +24,21 @@ async function videoRecorder() {
 	const stream = await getStream(page, {
 		audio: true,
 		video: true,
+		delay: 1000,
 	});
 
-	stream.on('readable', () => {
-		let data;
-
-		while ((data = stream.read()) !== null) {
-			console.log({length: data.length, timecode: stream.timecode});
-			file.write(data);
-		}
+	stream.on("end", () => {
+		file.close();
 	});
 
-	stream.on('end', () => {
-		file.end();
-	});
+	stream.pipe(file);
 
 	setTimeout(async () => {
 		await stream.destroy();
-		file.close();
 		await browser.close();
 		console.log("finished");
 	}, 10000);
+
+	// stream.pipe(p.stdin);
 }
 videoRecorder();

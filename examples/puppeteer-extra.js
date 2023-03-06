@@ -1,17 +1,18 @@
-const { launch, getStream } = require("puppeteer-stream");
+const { launch, getStream } = require("../dist/PuppeteerStream");
 const fs = require("fs");
+const utils = require("../tests/_utils");
 
 // make sure to install puppeteer-extra & puppeteer-extra-plugin-stealth to use this example
-const puppeteer = require('puppeteer-extra')
-const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+const puppeteer = require("puppeteer-extra");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
-puppeteer.use(StealthPlugin())
-
+puppeteer.use(StealthPlugin());
 
 const file = fs.createWriteStream(__dirname + "/test.webm");
 
 async function test() {
 	const browser = await launch(puppeteer, {
+		executablePath: utils.getExecutablePath(),
 		defaultViewport: {
 			width: 1920,
 			height: 1080,
@@ -26,6 +27,7 @@ async function test() {
 	stream.pipe(file);
 	setTimeout(async () => {
 		await stream.destroy();
+		await browser.close();
 		file.close();
 		console.log("finished");
 	}, 1000 * 10);

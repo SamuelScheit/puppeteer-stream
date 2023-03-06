@@ -1,0 +1,1 @@
+ffplay -i http://localhost:3000/https://www.youtube.com/watch?v=dQw4w9WgXcQ -probesize 32 -fflags nobuffer -flags low_delay -framedrop -analyzeduration 0

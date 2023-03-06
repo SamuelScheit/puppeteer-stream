@@ -3,9 +3,11 @@
 const { launch, getStream } = require("../dist/PuppeteerStream");
 const fs = require("fs");
 const { exec } = require("child_process");
+const utils = require("../tests/_utils");
 
 async function test() {
 	const browser = await launch({
+		executablePath: utils.getExecutablePath(),
 		defaultViewport: {
 			width: 1920,
 			height: 1080,
@@ -25,8 +27,8 @@ async function test() {
 	stream.pipe(ffmpeg.stdin);
 
 	setTimeout(async () => {
-		await stream.unpipe(ffmpeg);
-		ffmpeg.kill();
+		await stream.destroy();
+		ffmpeg.kill("SIGINT");
 
 		console.log("finished");
 	}, 1000 * 10);
