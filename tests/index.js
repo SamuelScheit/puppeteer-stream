@@ -10,7 +10,7 @@ async function videoRecorder() {
 
 	const browser = await launch({
 		executablePath: utils.getExecutablePath(),
-		headless: true,
+		headless: false,
 		defaultViewport: null,
 		devtools: true,
 	});

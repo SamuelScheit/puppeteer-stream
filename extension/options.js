@@ -57,7 +57,6 @@ async function START_RECORDING({
 		const chunkSize = 9 * 1024; // Max UDP packet size
 		for (let i = 0; i < buffer.byteLength; i += chunkSize) {
 			const chunk = buffer.slice(i, i + chunkSize);
-			console.log(chunk.byteLength);
 			await send(chunk);
 		}
 	};

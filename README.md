@@ -6,7 +6,6 @@ An Extension for Puppeteer to retrieve audio and/or video streams of a page
 	<img src="https://img.shields.io/npm/v/puppeteer-stream">
 </a>
 
-
 ## Installation
 
 ```
@@ -28,8 +27,6 @@ or ES6 import
 import { launch, getStream } from "puppeteer-stream";
 ```
 
-
-
 ### Notice: This will only work in headful mode
 
 The method `getStream(options)` takes the following options
@@ -42,7 +39,7 @@ The method `getStream(options)` takes the following options
 	audioBitsPerSecond?: number; // The chosen bitrate for the audio component of the media.
 	videoBitsPerSecond?: number; // The chosen bitrate for the video component of the media.
 	bitsPerSecond?: number; // The chosen bitrate for the audio and video components of the media. This can be specified instead of the above two properties. If this is specified along with one or the other of the above properties, this will be used for the one that isn't specified.
-	frameSize?: number = 20; // The number of milliseconds to record into each packet.
+	frameSize?: number; // The number of milliseconds to record into each packet.
   	videoConstraints: {
 		mandatory: {
 			minWidth?: number,
@@ -53,11 +50,13 @@ The method `getStream(options)` takes the following options
 	},
 }
 ```
+
 and returns a `Promise<`[`Readable`](/dist/PuppeteerStream.d.ts#L4)`>`
 
 For a detailed documentation of the options have a look at the [HTML5 MediaRecorder Options](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/MediaRecorder)
 
 ### Launch
+
 The method `launch(options)` is just a slightly changed puppeteer [launch](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-puppeteerlaunchoptions) function to start puppeteer in headful mode with this extension.
 
 ## Example
@@ -65,7 +64,7 @@ The method `launch(options)` is just a slightly changed puppeteer [launch](https
 ### [Save Stream to File:](/examples/file.js)
 
 ```js
-const { launch, getStream }  = require("puppeteer-stream");
+const { launch, getStream } = require("puppeteer-stream");
 const fs = require("fs");
 
 const file = fs.createWriteStream(__dirname + "/test.webm");
@@ -95,5 +94,7 @@ test();
 ```
 
 ### [Stream to Discord](/examples/discord.js)
+
 ### [Stream Spotify](https://www.npmjs.com/package/spotify-playback-sdk-node)
+
 ### [Use puppeteer-extra plugins](/examples/puppeteer-extra.js)

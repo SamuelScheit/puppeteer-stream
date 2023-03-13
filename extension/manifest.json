@@ -6,18 +6,9 @@
 	"background": {
 		"service_worker": "background.js"
 	},
-	"content_scripts": [
-		{
-			"matches": ["*://*/*"],
-			"js": ["content.js"]
-		}
-	],
 	"sockets": {
-		"tcp": {
-			"connect": ""
-		},
 		"udp": { "send": ["*:*"], "bind": ["*:*"] }
 	},
-	"permissions": ["tabs", "tabCapture", "storage", "activeTab", "scripting", "sockets.tcp"],
+	"permissions": ["tabs", "tabCapture", "storage", "activeTab", "scripting", "sockets.udp"],
 	"host_permissions": ["*://*/*", "<all_urls>", "https://*/*", "http://*/*"]
 }

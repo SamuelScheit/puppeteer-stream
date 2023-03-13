@@ -13,10 +13,15 @@ import dgram, { Socket } from "dgram";
 const extensionPath = path.join(__dirname, "..", "extension");
 const extensionId = "jjndjgheafjngoipoacpjgeicjeomjli";
 let currentIndex = 0;
+type StreamLaunchOptions = LaunchOptions &
+	BrowserLaunchArgumentOptions &
+	BrowserConnectOptions & {
+		allowIncognito?: boolean;
+	};
 
 export async function launch(
-	arg1: (LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions) | any,
-	opts?: LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions
+	arg1: StreamLaunchOptions & { launch?: Function; [key: string]: any },
+	opts?: StreamLaunchOptions
 ): Promise<Browser> {
 	//if puppeteer library is not passed as first argument, then first argument is options
 	if (typeof arg1.launch != "function") {
@@ -57,6 +62,22 @@ export async function launch(
 		browser = await arg1.launch(opts);
 	} else {
 		browser = await puppeteerLaunch(opts);
+	}
+
+	if (opts.allowIncognito) {
+		const settings = await browser.newPage();
+		await settings.goto(`chrome://extensions/?id=${extensionId}`);
+		await settings.evaluate(() => {
+			(document as any)
+				.querySelector("extensions-manager")
+				.shadowRoot.querySelector("#viewManager > extensions-detail-view.active")
+				.shadowRoot.querySelector(
+					"div#container.page-container > div.page-content > div#options-section extensions-toggle-row#allow-incognito"
+				)
+				.shadowRoot.querySelector("label#label input")
+				.click();
+		});
+		await settings.close();
 	}
 
 	return browser;
