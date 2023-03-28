@@ -49,7 +49,7 @@ export async function launch(
 
 	addToArgs("--load-extension=", extensionPath);
 	addToArgs("--disable-extensions-except=", extensionPath);
-	addToArgs("--whitelisted-extension-id=", extensionId);
+	addToArgs("--allowlisted-extension-id=", extensionId);
 	addToArgs("--autoplay-policy=no-user-gesture-required");
 
 	if (opts.defaultViewport?.width && opts.defaultViewport?.height)
