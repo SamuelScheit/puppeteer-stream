@@ -98,9 +98,16 @@ export type BrowserMimeType =
 	| "audio/webm;codecs=opus"
 	| "audio/webm;codecs=pcm";
 
+export type Constraints = {
+	mandatory?: MediaTrackConstraints;
+	optional?: MediaTrackConstraints;
+};
+
 export interface getStreamOptions {
-	audio: boolean | MediaTrackConstraints;
-	video: boolean | MediaTrackConstraints;
+	audio: boolean;
+	video: boolean;
+	videoConstraints?: Constraints;
+	audioConstraints?: Constraints;
 	mimeType?: BrowserMimeType;
 	audioBitsPerSecond?: number;
 	videoBitsPerSecond?: number;

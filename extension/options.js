@@ -11,6 +11,7 @@ async function START_RECORDING({
 	mimeType,
 	videoConstraints,
 	delay,
+	audioConstraints,
 }) {
 	console.log("START_RECORDING", {
 		index,
@@ -22,6 +23,7 @@ async function START_RECORDING({
 		bitsPerSecond,
 		mimeType,
 		videoConstraints,
+		audioConstraints,
 	});
 	const { socketId } = await new Promise((resolve) => {
 		chrome.sockets.udp.create({ bufferSize: 1024 * 1024 * 8 }, resolve);
@@ -33,7 +35,7 @@ async function START_RECORDING({
 		new Promise((resolve) => chrome.sockets.udp.send(socketId, data, "127.0.0.1", 55200 + index, "ipv4", resolve));
 
 	const stream = await new Promise((resolve, reject) => {
-		chrome.tabCapture.capture({ video, audio, videoConstraints }, (stream) => {
+		chrome.tabCapture.capture({ video, audio, videoConstraints, audioConstraints }, (stream) => {
 			if (stream) resolve(stream);
 			else reject();
 		});

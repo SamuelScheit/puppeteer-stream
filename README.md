@@ -41,19 +41,19 @@ The method `getStream(options)` takes the following options
 	bitsPerSecond?: number; // The chosen bitrate for the audio and video components of the media. This can be specified instead of the above two properties. If this is specified along with one or the other of the above properties, this will be used for the one that isn't specified.
 	frameSize?: number; // The number of milliseconds to record into each packet.
   	videoConstraints: {
-		mandatory: {
-			minWidth?: number,
-			minHeight?:number,
-			maxWidth?:number,
-			maxHeight?:number,
-		},
+		mandatory?: MediaTrackConstraints,
+		optional?: MediaTrackConstraints
+	},
+	audioConstraints: {
+		mandatory?: MediaTrackConstraints,
+		optional?: MediaTrackConstraints
 	},
 }
 ```
 
-and returns a `Promise<`[`Readable`](/dist/PuppeteerStream.d.ts#L4)`>`
+`getStream` returns a `Promise<`[`Readable`](/dist/PuppeteerStream.d.ts#L4)`>`
 
-For a detailed documentation of the options have a look at the [HTML5 MediaRecorder Options](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/MediaRecorder)
+For a detailed documentation of the `mimeType`, `audioBitsPerSecond`, `videoBitsPerSecond`, `bitsPerSecond`, `frameSize` properties have a look at the [HTML5 MediaRecorder Options](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/MediaRecorder) and for the `videoConstraints` and `audioConstraints` properties have a look at the [MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints).
 
 ### Launch
 
