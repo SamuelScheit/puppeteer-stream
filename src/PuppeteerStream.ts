@@ -154,7 +154,7 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 	return stream;
 }
 
-class UDPStream extends Readable {
+export class UDPStream extends Readable {
 	socket: Socket;
 	constructor(port = 55200, public onDestroy: Function) {
 		super({ highWaterMark: 1024 * 1024 * 8 });
