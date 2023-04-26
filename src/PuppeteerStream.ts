@@ -170,7 +170,7 @@ async function assertExtensionLoaded( ext: Page, opt: getStreamOptions["retry"])
 	throw new Error("Could not find START_RECORDING function in the browser context")
 }
 
-class UDPStream extends Readable {
+export class UDPStream extends Readable {
 	socket: Socket;
 	constructor(port = 55200, public onDestroy: Function) {
 		super({ highWaterMark: 1024 * 1024 * 8 });
