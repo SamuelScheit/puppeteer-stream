@@ -15,9 +15,9 @@
 		"screenshot",
 		"recorder"
 	],
-	"author": "Flam3rboy",
+	"author": "SamuelScheit",
 	"repository": {
-		"url": "https://github.com/Flam3rboy/puppeteer-stream"
+		"url": "https://github.com/SamuelScheit/puppeteer-stream"
 	},
 	"license": "MIT",
 	"dependencies": {
