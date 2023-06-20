@@ -18,8 +18,8 @@ async function test() {
 	await page.goto("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
 	const stream = await getStream(page, { audio: true, video: true, frameSize: 1000 });
 	console.log("recording");
-	// this will pipe the stream to ffmpeg and convert the webm to mp4 format
-	const ffmpeg = exec(`ffmpeg -y -i - output.mp4`);
+	// this will pipe the stream to ffmpeg and convert the webm to mkv format (which supports vp8/vp9)
+	const ffmpeg = exec(`ffmpeg -y -i - -c copy output.mkv`);
 	ffmpeg.stderr.on("data", (chunk) => {
 		console.log(chunk.toString());
 	});
