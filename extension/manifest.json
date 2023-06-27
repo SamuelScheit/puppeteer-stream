@@ -7,8 +7,9 @@
 		"service_worker": "background.js"
 	},
 	"sockets": {
-		"udp": { "send": ["*:*"], "bind": ["*:*"] }
+		"udp": { "send": ["*:*"], "bind": ["*:*"] },
+		"tcp": { "connect": ["*"] }
 	},
-	"permissions": ["tabs", "tabCapture", "storage", "activeTab", "scripting", "sockets.udp"],
+	"permissions": ["tabs", "tabCapture", "storage", "activeTab", "scripting", "sockets.udp", "sockets.tcp"],
 	"host_permissions": ["*://*/*", "<all_urls>", "https://*/*", "http://*/*"]
 }

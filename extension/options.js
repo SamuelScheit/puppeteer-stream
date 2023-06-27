@@ -12,27 +12,54 @@ async function START_RECORDING({
 	videoConstraints,
 	delay,
 	audioConstraints,
+	transmissionMode,
 }) {
-	console.log("START_RECORDING", {
-		index,
-		video,
-		audio,
-		frameSize,
-		audioBitsPerSecond,
-		videoBitsPerSecond,
-		bitsPerSecond,
-		mimeType,
-		videoConstraints,
-		audioConstraints,
-	});
+	console.log(
+		"[PUPPETEER_STREAM] START_RECORDING",
+		JSON.stringify({
+			index,
+			video,
+			audio,
+			frameSize,
+			audioBitsPerSecond,
+			videoBitsPerSecond,
+			bitsPerSecond,
+			mimeType,
+			videoConstraints,
+			audioConstraints,
+			transmissionMode,
+		})
+	);
+
+	const useTCP = transmissionMode === "TCP";
+
 	const { socketId } = await new Promise((resolve) => {
+		if (useTCP) {
+			chrome.sockets.tcp.create({ bufferSize: 1024 * 1024 * 8 }, resolve);
+			return;
+		}
+
 		chrome.sockets.udp.create({ bufferSize: 1024 * 1024 * 8 }, resolve);
 	});
+
 	await new Promise((resolve) => {
+		if (useTCP) {
+			chrome.sockets.tcp.connect(socketId, "127.0.0.1", 55200 + index, "ipv4", resolve);
+			return;
+		}
+
 		chrome.sockets.udp.bind(socketId, "127.0.0.1", 0, resolve);
 	});
+
 	const send = (data) =>
-		new Promise((resolve) => chrome.sockets.udp.send(socketId, data, "127.0.0.1", 55200 + index, "ipv4", resolve));
+		new Promise((resolve) => {
+			if (useTCP) {
+				chrome.sockets.tcp.send(socketId, data, resolve);
+				return;
+			}
+
+			chrome.sockets.udp.send(socketId, data, "127.0.0.1", 55200 + index, "ipv4", resolve);
+		});
 
 	const stream = await new Promise((resolve, reject) => {
 		chrome.tabCapture.capture({ video, audio, videoConstraints, audioConstraints }, (stream) => {
@@ -56,6 +83,12 @@ async function START_RECORDING({
 		if (!e.data.size) return;
 
 		const buffer = await e.data.arrayBuffer();
+
+		if (useTCP) {
+			await send(buffer);
+			return;
+		}
+
 		const chunkSize = 9 * 1024; // Max UDP packet size
 		for (let i = 0; i < buffer.byteLength; i += chunkSize) {
 			const chunk = buffer.slice(i, i + chunkSize);
@@ -74,6 +107,10 @@ async function START_RECORDING({
 			tracks.forEach(function (track) {
 				track.stop();
 			});
+
+			if (useTCP) {
+				chrome.sockets.tcp.disconnect(socketId);
+			}
 		} catch (error) {}
 	};
 	stream.oninactive = () => {
@@ -86,7 +123,7 @@ async function START_RECORDING({
 }
 
 function STOP_RECORDING(index) {
-	console.log("STOP_RECORDING", index);
+	console.log("[PUPPETEER_STREAM] STOP_RECORDING", index);
 	if (!recorders[index]) return;
 	recorders[index].stop();
 }
