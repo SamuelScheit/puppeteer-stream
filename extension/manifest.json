@@ -7,7 +7,6 @@
 		"service_worker": "background.js"
 	},
 	"sockets": {
-		"udp": { "send": ["*:*"], "bind": ["*:*"] },
 		"tcp": { "connect": ["*"] }
 	},
 	"permissions": ["tabs", "tabCapture", "storage", "activeTab", "scripting", "sockets.udp", "sockets.tcp"],
