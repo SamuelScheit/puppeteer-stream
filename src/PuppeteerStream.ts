@@ -104,14 +104,11 @@ export type Constraints = {
 	optional?: MediaTrackConstraints;
 };
 
-type TransmissionMode = "TCP" | "UDP";
-
 interface IPuppeteerStreamOpts {
 	onDestroy: () => Promise<void>;
 	highWaterMarkMB: number;
 	immediateResume: boolean;
 	port: number;
-	transmissionMode: TransmissionMode;
 }
 
 export interface getStreamOptions {
@@ -131,7 +128,6 @@ export interface getStreamOptions {
 	};
 	transmission?: {
 		basePort?: number;
-		mode?: TransmissionMode;
 	};
 	streamConfig?: {
 		highWaterMarkMB?: number;
@@ -164,9 +160,7 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 
 	const basePort = opts.transmission?.basePort || 55200;
 	const highWaterMarkMB = opts.streamConfig?.highWaterMarkMB || 8;
-	const immediateResume =
-		opts.streamConfig?.immediateResume === undefined ? true : opts.streamConfig?.immediateResume;
-	const transmissionMode = opts.transmission?.mode || "UDP";
+	const immediateResume = opts.streamConfig?.immediateResume ?? true;
 
 	const index = currentIndex++;
 	const port = basePort + index;
@@ -177,16 +171,15 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 		highWaterMarkMB,
 		immediateResume,
 		port,
-		transmissionMode,
 	});
 
 	await page.bringToFront();
 	await assertExtensionLoaded(extension, retryPolicy);
 
-	extension.evaluate(
+	await extension.evaluate(
 		// @ts-ignore
 		(settings) => START_RECORDING(settings),
-		{ ...opts, index, transmissionMode }
+		{ ...opts, index }
 	);
 
 	return stream;
@@ -204,43 +197,24 @@ async function assertExtensionLoaded(ext: Page, opt: getStreamOptions["retry"]) 
 
 export class PuppeteerReadableStream extends Readable {
 	private readonly onDestroy?: () => Promise<void>;
-	private readonly tcpSockets?: TCPSocket[];
-	private readonly tcpServer?: TCPServer;
-	private readonly udpSocket?: UDPSocket;
+	private readonly tcpSockets: TCPSocket[];
+	private readonly tcpServer: TCPServer;
 
-	constructor(opts: IPuppeteerStreamOpts) {
+	constructor(public opts: IPuppeteerStreamOpts) {
 		super({ highWaterMark: 1024 * 1024 * opts.highWaterMarkMB });
 
 		this.onDestroy = opts.onDestroy;
 
-		if (opts.transmissionMode === "TCP") {
-			this.tcpSockets = [];
-			this.tcpServer = net.createServer((socket) => {
-				this.tcpSockets.push(socket);
+		this.tcpSockets = [];
+		this.tcpServer = net.createServer((socket) => {
+			this.tcpSockets.push(socket);
 
-				socket.on("data", (data) => {
-					this.push(data);
-				});
-
-				socket.on("end", () => {
-					console.log("[PUPPETEER STREAM] TCP SOCKET ENDED");
-				});
-
-				console.log("[PUPPETEER STREAM] TCP SERVER CREATED");
+			socket.on("data", (data) => {
+				this.push(data);
 			});
+		});
 
-			this.tcpServer.listen(opts.port, "127.0.0.1", () => {
-				console.log(`[PUPPETEER STREAM] TCP SERVER LISTENING ON 127.0.0.1:${opts.port}`);
-			});
-		} else {
-			this.udpSocket = dgram
-				.createSocket("udp4", (data) => {
-					this.push(data);
-				})
-				.bind(opts.port, "127.0.0.1", () => {});
-
-			console.log(`[PUPPETEER STREAM] UDP BINDING ON 127.0.0.1:${opts.port}`);
-		}
+		this.tcpServer.listen(opts.port, "127.0.0.1", () => {});
 
 		opts.immediateResume && this.resume();
 	}
@@ -251,12 +225,8 @@ export class PuppeteerReadableStream extends Readable {
 	override async destroy(error?: Error) {
 		await this.onDestroy?.();
 
-		this.tcpSockets?.forEach((socket) => socket.end());
-		this.tcpServer?.close(() => {
-			console.log(`[PUPPETEER STREAM] TCP SERVER TERMINATED`);
-		});
-
-		this.udpSocket?.close();
+		this.tcpSockets.forEach((socket) => socket.end());
+		this.tcpServer.close();
 
 		super.destroy();
 		return this;
