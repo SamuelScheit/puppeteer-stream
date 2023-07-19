@@ -21,7 +21,7 @@ type StreamLaunchOptions = LaunchOptions &
 	};
 
 export async function launch(
-	arg1: StreamLaunchOptions & { launch?: Function; [key: string]: any },
+	arg1: StreamLaunchOptions | { launch?: Function; [key: string]: any },
 	opts?: StreamLaunchOptions
 ): Promise<Browser> {
 	//if puppeteer library is not passed as first argument, then first argument is options
