@@ -29,18 +29,12 @@ async function START_RECORDING({
 		})
 	);
 
-	const { socketId } = await new Promise((resolve) => {
-		chrome.sockets.tcp.create({ bufferSize: 1024 * 1024 * 8 }, resolve);
-	});
+	const client = new WebSocket("ws://localhost:55200/?index=" + index, []);
 
 	await new Promise((resolve) => {
-		chrome.sockets.tcp.connect(socketId, "127.0.0.1", 55200 + index, "ipv4", resolve);
+		if (client.readyState === WebSocket.OPEN) resolve();
+		client.addEventListener("open", resolve);
 	});
-
-	const send = (data) =>
-		new Promise((resolve) => {
-			chrome.sockets.tcp.send(socketId, data, resolve);
-		});
 
 	const stream = await new Promise((resolve, reject) => {
 		chrome.tabCapture.capture({ video, audio, videoConstraints, audioConstraints }, (stream) => {
@@ -65,7 +59,7 @@ async function START_RECORDING({
 
 		const buffer = await e.data.arrayBuffer();
 
-		await send(buffer);
+		client.send(buffer);
 	};
 	recorders[index] = recorder;
 	// TODO: recorder onerror
@@ -80,7 +74,7 @@ async function START_RECORDING({
 				track.stop();
 			});
 
-			chrome.sockets.tcp.disconnect(socketId);
+			if (client.readyState === WebSocket.OPEN) client.close();
 		} catch (error) {}
 	};
 	stream.oninactive = () => {
@@ -95,5 +89,7 @@ async function START_RECORDING({
 function STOP_RECORDING(index) {
 	console.log("[PUPPETEER_STREAM] STOP_RECORDING", index);
 	if (!recorders[index]) return;
+	if (recorders[index].state === "inactive") return;
+
 	recorders[index].stop();
 }

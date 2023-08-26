@@ -32,7 +32,7 @@ async function test() {
 	stream.pipe(ffmpeg.stdin);
 
 	setTimeout(async () => {
-		await stream.destroy();
+		stream.destroy();
 
 		console.log("finished");
 		await browser.close();

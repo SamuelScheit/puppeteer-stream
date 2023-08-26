@@ -29,7 +29,7 @@ async function test() {
 
 	stream.pipe(file);
 	setTimeout(async () => {
-		await stream.destroy();
+		stream.destroy();
 		file.close();
 		console.log("finished");
 	}, 1000 * 10);

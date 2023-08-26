@@ -7,9 +7,9 @@ import {
 	BrowserConnectOptions,
 } from "puppeteer-core";
 import * as path from "path";
-import { Readable } from "stream";
-import dgram, { Socket as UDPSocket } from "dgram";
-import net, { Server as TCPServer, Socket as TCPSocket } from "net";
+import { Transform } from "stream";
+import WebSocket, { WebSocketServer } from "ws";
+import { IncomingMessage } from "http";
 
 const extensionPath = path.join(__dirname, "..", "extension");
 const extensionId = "jjndjgheafjngoipoacpjgeicjeomjli";
@@ -20,14 +20,15 @@ type StreamLaunchOptions = LaunchOptions &
 		allowIncognito?: boolean;
 	};
 
+export const wss = new WebSocketServer({ port: 55200 });
+
 export async function launch(
 	arg1: StreamLaunchOptions | { launch?: Function; [key: string]: any },
 	opts?: StreamLaunchOptions
 ): Promise<Browser> {
 	//if puppeteer library is not passed as first argument, then first argument is options
-	if (typeof arg1.launch != "function") {
-		opts = arg1;
-	}
+	// @ts-ignore
+	if (typeof arg1.launch != "function") opts = arg1;
 
 	if (!opts) opts = {};
 	if (!opts.args) opts.args = [];
@@ -59,7 +60,10 @@ export async function launch(
 	opts.headless = false;
 
 	let browser: Browser;
+
+	// @ts-ignore
 	if (typeof arg1.launch == "function") {
+		// @ts-ignore
 		browser = await arg1.launch(opts);
 	} else {
 		browser = await puppeteerLaunch(opts);
@@ -126,9 +130,6 @@ export interface getStreamOptions {
 		each?: number;
 		times?: number;
 	};
-	transmission?: {
-		basePort?: number;
-	};
 	streamConfig?: {
 		highWaterMarkMB?: number;
 		immediateResume?: boolean;
@@ -158,20 +159,43 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 
 	const extension = await getExtensionPage(page.browser());
 
-	const basePort = opts.transmission?.basePort || 55200;
 	const highWaterMarkMB = opts.streamConfig?.highWaterMarkMB || 8;
-	const immediateResume = opts.streamConfig?.immediateResume ?? true;
-
 	const index = currentIndex++;
-	const port = basePort + index;
 
-	const stream = new PuppeteerReadableStream({
-		// @ts-ignore
-		onDestroy: () => extension.evaluate((index) => STOP_RECORDING(index), index),
-		highWaterMarkMB,
-		immediateResume,
-		port,
+	const stream = new Transform({
+		highWaterMark: 1024 * 1024 * highWaterMarkMB,
+		transform(chunk, encoding, callback) {
+			callback(null, chunk);
+		},
 	});
+
+	function onConnection(ws: WebSocket, req: IncomingMessage) {
+		const url = new URL(`http://localhost:55200${req.url}`);
+		if (url.searchParams.get("index") != index.toString()) return;
+
+		function close() {
+			if (!stream.readableEnded && !stream.writableEnded) stream.end();
+			if (!extension.isClosed() && extension.browser().isConnected()) {
+				// @ts-ignore
+				extension.evaluate((index) => STOP_RECORDING(index), index);
+			}
+
+			setTimeout(() => {
+				// await pending messages to be sent and then close the socket
+				if (ws.readyState != WebSocket.CLOSED) ws.close();
+			}, 5000);
+		}
+
+		ws.on("message", (data) => {
+			stream.write(data);
+		});
+
+		ws.on("close", close);
+		page.on("close", close);
+		stream.on("close", close);
+	}
+
+	wss.on("connection", onConnection);
 
 	await page.bringToFront();
 	await assertExtensionLoaded(extension, retryPolicy);
@@ -193,42 +217,4 @@ async function assertExtensionLoaded(ext: Page, opt: getStreamOptions["retry"]) 
 		await wait(Math.pow(opt.each, currentTick));
 	}
 	throw new Error("Could not find START_RECORDING function in the browser context");
-}
-
-export class PuppeteerReadableStream extends Readable {
-	private readonly onDestroy?: () => Promise<void>;
-	private readonly tcpSockets: TCPSocket[];
-	private readonly tcpServer: TCPServer;
-
-	constructor(public opts: IPuppeteerStreamOpts) {
-		super({ highWaterMark: 1024 * 1024 * opts.highWaterMarkMB });
-
-		this.onDestroy = opts.onDestroy;
-
-		this.tcpSockets = [];
-		this.tcpServer = net.createServer((socket) => {
-			this.tcpSockets.push(socket);
-
-			socket.on("data", (data) => {
-				this.push(data);
-			});
-		});
-
-		this.tcpServer.listen(opts.port, "127.0.0.1", () => {});
-
-		opts.immediateResume && this.resume();
-	}
-
-	_read(size: number): void {}
-
-	// @ts-ignore
-	override async destroy(error?: Error) {
-		await this.onDestroy?.();
-
-		this.tcpSockets.forEach((socket) => socket.end());
-		this.tcpServer.close();
-
-		super.destroy();
-		return this;
-	}
 }
