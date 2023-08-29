@@ -133,6 +133,7 @@ export interface getStreamOptions {
 	streamConfig?: {
 		highWaterMarkMB?: number;
 		immediateResume?: boolean;
+		closeTimeout?: number;
 	};
 }
 
@@ -180,10 +181,12 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 				extension.evaluate((index) => STOP_RECORDING(index), index);
 			}
 
-			setTimeout(() => {
-				// await pending messages to be sent and then close the socket
-				if (ws.readyState != WebSocket.CLOSED) ws.close();
-			}, 5000);
+			if (ws.readyState != WebSocket.CLOSED) {
+				setTimeout(() => {
+					// await pending messages to be sent and then close the socket
+					if (ws.readyState != WebSocket.CLOSED) ws.close();
+				}, opts.streamConfig?.closeTimeout ?? 5000);
+			}
 		}
 
 		ws.on("message", (data) => {
