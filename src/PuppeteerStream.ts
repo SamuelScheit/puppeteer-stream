@@ -149,6 +149,24 @@ async function getExtensionPage(browser: Browser) {
 	return videoCaptureExtension;
 }
 
+let mutex = false;
+let queue: Function[] = [];
+
+function lock() {
+	return new Promise((res) => {
+		if (!mutex) {
+			mutex = true;
+			return res(null);
+		}
+		queue.push(res);
+	});
+}
+
+function unlock() {
+	if (queue.length) queue.shift()();
+	else mutex = false;
+}
+
 export async function getStream(page: Page, opts: getStreamOptions) {
 	if (!opts.audio && !opts.video) throw new Error("At least audio or video must be true");
 	if (!opts.mimeType) {
@@ -162,6 +180,26 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 
 	const highWaterMarkMB = opts.streamConfig?.highWaterMarkMB || 8;
 	const index = currentIndex++;
+
+	await lock();
+
+	await page.bringToFront();
+	const [tab] = await extension.evaluate(
+		async (x) => {
+			// @ts-ignore
+			return chrome.tabs.query(x);
+		},
+		{
+			active: true,
+			title: await page.title(),
+			url: page.url(),
+		}
+	);
+
+	if (!tab) throw new Error("Cannot find tab");
+
+	unlock();
+	console.log(tab);
 
 	const stream = new Transform({
 		highWaterMark: 1024 * 1024 * highWaterMarkMB,
@@ -187,6 +225,7 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 					if (ws.readyState != WebSocket.CLOSED) ws.close();
 				}, opts.streamConfig?.closeTimeout ?? 5000);
 			}
+			wss.off("connection", onConnection);
 		}
 
 		ws.on("message", (data) => {
@@ -206,7 +245,7 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 	await extension.evaluate(
 		// @ts-ignore
 		(settings) => START_RECORDING(settings),
-		{ ...opts, index }
+		{ ...opts, index, tabId: tab.id }
 	);
 
 	return stream;

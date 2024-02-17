@@ -12,6 +12,7 @@ async function START_RECORDING({
 	videoConstraints,
 	delay,
 	audioConstraints,
+	tabId,
 }) {
 	console.log(
 		"[PUPPETEER_STREAM] START_RECORDING",
@@ -26,6 +27,7 @@ async function START_RECORDING({
 			mimeType,
 			videoConstraints,
 			audioConstraints,
+			tabId,
 		})
 	);
 
@@ -36,11 +38,30 @@ async function START_RECORDING({
 		client.addEventListener("open", resolve);
 	});
 
-	const stream = await new Promise((resolve, reject) => {
-		chrome.tabCapture.capture({ video, audio, videoConstraints, audioConstraints }, (stream) => {
+	const streamId = await new Promise((resolve, reject) => {
+		chrome.tabCapture.getMediaStreamId({ targetTabId: tabId }, (stream) => {
 			if (stream) resolve(stream);
 			else reject();
 		});
+	});
+
+	const stream = await navigator.mediaDevices.getUserMedia({
+		video: video && {
+			...video,
+			mandatory: {
+				...video?.mandatory,
+				chromeMediaSource: "tab",
+				chromeMediaSourceId: streamId,
+			},
+		},
+		audio: audio && {
+			...audio,
+			mandatory: {
+				...audio?.mandatory,
+				chromeMediaSource: "tab",
+				chromeMediaSourceId: streamId,
+			},
+		},
 	});
 
 	// somtimes needed to sync audio and video
