@@ -19,8 +19,29 @@ type StreamLaunchOptions = LaunchOptions &
 	BrowserConnectOptions & {
 		allowIncognito?: boolean;
 	};
+let port: number;
 
-export const wss = new WebSocketServer({ port: 55200 });
+export const wss = (async () => {
+	for (let i = 55200; i <= 65535; i++) {
+		const ws = new WebSocketServer({ port: i });
+		const promise = await Promise.any([
+			new Promise((resolve) => {
+				ws.on("error", (e: any) => {
+					resolve(!e.message.includes("EADDRINUSE"));
+				});
+			}),
+			new Promise((resolve) => {
+				ws.on("listening", () => {
+					resolve(true);
+				});
+			})
+		]);
+		if (promise) {
+			port = i;
+			return ws;
+		}
+	}
+})();
 
 export async function launch(
 	arg1: StreamLaunchOptions | { launch?: Function; [key: string]: any },
@@ -85,6 +106,8 @@ export async function launch(
 		await settings.close();
 	}
 
+	(await browser.newPage()).goto(`chrome-extension://${extensionId}/options.html#${port}`);
+
 	return browser;
 }
 
@@ -139,7 +162,7 @@ export interface getStreamOptions {
 
 async function getExtensionPage(browser: Browser) {
 	const extensionTarget = await browser.waitForTarget((target) => {
-		return target.type() === "page" && target.url() === `chrome-extension://${extensionId}/options.html`;
+		return target.type() === "page" && target.url().startsWith(`chrome-extension://${extensionId}/options.html`);
 	});
 	if (!extensionTarget) throw new Error("cannot load extension");
 
@@ -209,10 +232,10 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 	});
 
 	function onConnection(ws: WebSocket, req: IncomingMessage) {
-		const url = new URL(`http://localhost:55200${req.url}`);
+		const url = new URL(`http://localhost:${port}${req.url}`);
 		if (url.searchParams.get("index") != index.toString()) return;
 
-		function close() {
+		async function close() {
 			if (!stream.readableEnded && !stream.writableEnded) stream.end();
 			if (!extension.isClosed() && extension.browser().isConnected()) {
 				// @ts-ignore
@@ -225,7 +248,7 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 					if (ws.readyState != WebSocket.CLOSED) ws.close();
 				}, opts.streamConfig?.closeTimeout ?? 5000);
 			}
-			wss.off("connection", onConnection);
+			(await wss).off("connection", onConnection);
 		}
 
 		ws.on("message", (data) => {
@@ -237,7 +260,7 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 		stream.on("close", close);
 	}
 
-	wss.on("connection", onConnection);
+	(await wss).on("connection", onConnection);
 
 	await page.bringToFront();
 	await assertExtensionLoaded(extension, retryPolicy);
