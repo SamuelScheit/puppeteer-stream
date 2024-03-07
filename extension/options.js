@@ -31,7 +31,7 @@ async function START_RECORDING({
 		})
 	);
 
-	const client = new WebSocket("ws://localhost:55200/?index=" + index, []);
+	const client = new WebSocket(`ws://localhost:${window.location.hash.substring(1)}/?index=${index}`, []);
 
 	await new Promise((resolve) => {
 		if (client.readyState === WebSocket.OPEN) resolve();
