@@ -55,7 +55,7 @@ export async function launch(
 	addToArgs("--autoplay-policy=no-user-gesture-required");
 
 	if (opts.defaultViewport?.width && opts.defaultViewport?.height)
-		opts.args.push(`--window-size=${opts.defaultViewport.width}x${opts.defaultViewport.height}`);
+		opts.args.push(`--window-size=${opts.defaultViewport.width},${opts.defaultViewport.height}`);
 
 	opts.headless = false;
 
