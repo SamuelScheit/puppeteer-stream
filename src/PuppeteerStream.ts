@@ -24,7 +24,7 @@ let port: number;
 export const wss = (async () => {
 	for (let i = 55200; i <= 65535; i++) {
 		const ws = new WebSocketServer({ port: i });
-		const promise = await Promise.any([
+		const promise = await Promise.race([
 			new Promise((resolve) => {
 				ws.on("error", (e: any) => {
 					resolve(!e.message.includes("EADDRINUSE"));
@@ -34,7 +34,7 @@ export const wss = (async () => {
 				ws.on("listening", () => {
 					resolve(true);
 				});
-			})
+			}),
 		]);
 		if (promise) {
 			port = i;
