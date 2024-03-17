@@ -138,6 +138,29 @@ interface IPuppeteerStreamOpts {
 	port: number;
 }
 
+interface TabQueryOptions {
+	active?: boolean;
+	audible?: boolean;
+	autoDiscardable?: boolean;
+	currentWindow?: boolean;
+	discarded?: boolean;
+	groupId?: number;
+	highlighted?: boolean;
+	index?: number;
+	lastFocusedWindow?: boolean;
+	muted?: boolean;
+	pinned?: boolean;
+	status?: TabStatus;
+	title?: string;
+	url?: string | string[];
+	windowId?: number;
+	windowType?: WindowType;
+}
+
+type TabStatus = "unloaded" | "loading" | "complete";
+
+type WindowType = "normal" | "popup" | "panel" | "app" | "devtools";
+
 export interface getStreamOptions {
 	audio: boolean;
 	video: boolean;
@@ -149,6 +172,11 @@ export interface getStreamOptions {
 	bitsPerSecond?: number;
 	frameSize?: number;
 	delay?: number;
+	/**
+	 * Tab query options to target the correct tab,
+	 * see [Chrome's extensions documentation](https://developer.chrome.com/docs/extensions/reference/api/tabs#method-query) for more info.
+	 */
+	tabQuery?: TabQueryOptions;
 	retry?: {
 		each?: number;
 		times?: number;
@@ -212,14 +240,14 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 			// @ts-ignore
 			return chrome.tabs.query(x);
 		},
-		{
+		opts.tabQuery || {
 			active: true,
 			title: await page.title(),
 			url: page.url(),
 		}
 	);
 
-	if (!tab) throw new Error("Cannot find tab");
+	if (!tab) throw new Error("Cannot find tab. Try providing your own tabQuery to getStream options");
 
 	unlock();
 	console.log(tab);
