@@ -87,6 +87,9 @@ async function test() {
 		await stream.destroy();
 		file.close();
 		console.log("finished");
+
+		await browser.close();
+		(await wss).close();
 	}, 1000 * 10);
 }
 
