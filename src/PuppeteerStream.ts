@@ -108,6 +108,21 @@ export async function launch(
 
 	(await browser.newPage()).goto(`chrome-extension://${extensionId}/options.html#${port}`);
 
+	const old_browser_close = browser.close;
+	browser.close = async () => {
+		for (const page of await browser.pages()) {
+			if (! page.url().startsWith(`chrome-extension://${extensionId}/options.html`)) {
+				await page.close();
+			}
+		}
+		const extension = await getExtensionPage(browser);
+		await extension.evaluate(async () => {
+			// @ts-expect-error
+			return chrome.tabs.query({});
+		});
+		await old_browser_close.call(browser);
+	}
+
 	return browser;
 }
 
