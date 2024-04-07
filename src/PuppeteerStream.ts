@@ -111,7 +111,7 @@ export async function launch(
 	const old_browser_close = browser.close;
 	browser.close = async () => {
 		for (const page of await browser.pages()) {
-			if (! page.url().startsWith(`chrome-extension://${extensionId}/options.html`)) {
+			if (!page.url().startsWith(`chrome-extension://${extensionId}/options.html`)) {
 				await page.close();
 			}
 		}
@@ -121,7 +121,7 @@ export async function launch(
 			return chrome.tabs.query({});
 		});
 		await old_browser_close.call(browser);
-	}
+	};
 
 	return browser;
 }
@@ -229,7 +229,6 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 		},
 		{
 			active: true,
-			title: await page.title(),
 			url: page.url(),
 		}
 	);
