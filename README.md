@@ -64,7 +64,7 @@ The method `launch(options)` is just a slightly changed puppeteer [launch](https
 ### [Save Stream to File:](/examples/file.js)
 
 ```js
-const { launch, getStream } = require("puppeteer-stream");
+const { launch, getStream, wss } = require("puppeteer-stream");
 const fs = require("fs");
 
 const file = fs.createWriteStream(__dirname + "/test.webm");
