@@ -6,6 +6,9 @@ An Extension for Puppeteer to retrieve audio and/or video streams of a page
 	<img src="https://img.shields.io/npm/v/puppeteer-stream">
 </a>
 
+## Recording video/audio from video conferencing calls
+If you’re looking to use this repo to retrieve video or audio streams from meeting platforms like Zoom, Google Meet, Microsoft Teams, consider checking out [Recall.ai](https://www.recall.ai), an API for meeting recording.
+
 ## Installation
 
 ```
