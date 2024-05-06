@@ -229,13 +229,12 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 		},
 		{
 			active: true,
-			url: page.url(),
 		}
 	);
 
+	unlock();
 	if (!tab) throw new Error("Cannot find tab");
 
-	unlock();
 	console.log(tab);
 
 	const stream = new Transform({
