@@ -10,7 +10,7 @@ async function test() {
 	});
 
 	const page = await browser.newPage();
-	await page.goto("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+	await page.goto("https://www.youtube.com/embed/DzivgKuhNl4?autoplay=1");
 	await page.setViewport({
 		width: 1920,
 		height: 1080,
