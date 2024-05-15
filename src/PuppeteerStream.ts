@@ -18,6 +18,8 @@ type StreamLaunchOptions = LaunchOptions &
 	BrowserLaunchArgumentOptions &
 	BrowserConnectOptions & {
 		allowIncognito?: boolean;
+	} & {
+		closeDelay?: number;
 	};
 let port: number;
 
@@ -75,10 +77,21 @@ export async function launch(
 	addToArgs("--allowlisted-extension-id=", extensionId);
 	addToArgs("--autoplay-policy=no-user-gesture-required");
 
-	if (opts.defaultViewport?.width && opts.defaultViewport?.height)
+	if (opts.defaultViewport?.width && opts.defaultViewport?.height) {
 		opts.args.push(`--window-size=${opts.defaultViewport.width},${opts.defaultViewport.height}`);
+		opts.args.push(`--ozone-override-screen-size=${opts.defaultViewport.width},${opts.defaultViewport.height}`);
+	}
 
-	opts.headless = false;
+	opts.headless = opts.headless === "new" ? "new" : false;
+
+	if (opts.headless) {
+		if (!opts.ignoreDefaultArgs) opts.ignoreDefaultArgs = [];
+
+		if (Array.isArray(opts.ignoreDefaultArgs) && !opts.ignoreDefaultArgs.includes("--mute-audio"))
+			opts.ignoreDefaultArgs.push("--mute-audio");
+
+		if (!opts.args.includes("--headless=new")) opts.args.push("--headless=new");
+	}
 
 	let browser: Browser;
 
@@ -120,6 +133,9 @@ export async function launch(
 			// @ts-expect-error
 			return chrome.tabs.query({});
 		});
+		if (opts.closeDelay) {
+			await new Promise((r) => setTimeout(r, opts.closeDelay));
+		}
 		await old_browser_close.call(browser);
 	};
 

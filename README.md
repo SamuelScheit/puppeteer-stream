@@ -18,31 +18,50 @@ npm i puppeteer-stream
 
 ## Usage
 
-ES5 import
+### Import
+
+For ES5
 
 ```js
 const { launch, getStream } = require("puppeteer-stream");
 ```
 
-or ES6 import
+or for ES6
 
 ```js
 import { launch, getStream } from "puppeteer-stream";
 ```
 
-### Notice: This will only work in headful mode
+### Launch
 
-The method `getStream(options)` takes the following options
+The method [`launch(options)`](https://github.com/SamuelScheit/puppeteer-stream/blob/beb7d50dbae8069cd7e42eb17dbe99174c56e3a6/src/PuppeteerStream.ts#L46) takes additional to the original [puppeteer launch function](https://github.com/puppeteer/puppeteer/blob/puppeteer-v20.7.2/docs/api/puppeteer.puppeteernode.launch.md), the following options
 
 ```ts
 {
-	audio: boolean; // whether or not to enable audio
-	video: boolean; // whether or not to enable video
-	mimeType?: string; // optional mime type of the stream, e.g. "audio/webm" or "video/webm"
-	audioBitsPerSecond?: number; // The chosen bitrate for the audio component of the media.
-	videoBitsPerSecond?: number; // The chosen bitrate for the video component of the media.
-	bitsPerSecond?: number; // The chosen bitrate for the audio and video components of the media. This can be specified instead of the above two properties. If this is specified along with one or the other of the above properties, this will be used for the one that isn't specified.
-	frameSize?: number; // The number of milliseconds to record into each packet.
+	allowIncognito?: boolean, // to be able to use incognito mode
+	closeDelay?: number, // to fix rarely occurring TargetCloseError, set and increase number (in ms)
+}
+```
+
+and returns a `Promise<`[`Browser`](https://github.com/SamuelScheit/puppeteer-stream/blob/beb7d50dbae8069cd7e42eb17dbe99174c56e3a6/src/PuppeteerStream.ts#L126)`>`
+
+#### Headless
+
+Works also in headless mode (no gui needed), just set `headless: "new"` in the [launch options](#launch)
+
+### Get Stream
+
+The method [`getStream(options)`](https://github.com/SamuelScheit/puppeteer-stream/blob/beb7d50dbae8069cd7e42eb17dbe99174c56e3a6/src/PuppeteerStream.ts#L208) takes the following options
+
+```ts
+{
+	audio: boolean, // whether or not to enable audio
+	video: boolean, // whether or not to enable video
+	mimeType?: string, // optional mime type of the stream, e.g. "audio/webm" or "video/webm"
+	audioBitsPerSecond?: number, // The chosen bitrate for the audio component of the media.
+	videoBitsPerSecond?: number, // The chosen bitrate for the video component of the media.
+	bitsPerSecond?: number, // The chosen bitrate for the audio and video components of the media. This can be specified instead of the above two properties. If this is specified along with one or the other of the above properties, this will be used for the one that isn't specified.
+	frameSize?: number, // The number of milliseconds to record into each packet.
   	videoConstraints: {
 		mandatory?: MediaTrackConstraints,
 		optional?: MediaTrackConstraints
@@ -54,13 +73,9 @@ The method `getStream(options)` takes the following options
 }
 ```
 
-`getStream` returns a `Promise<`[`Readable`](/dist/PuppeteerStream.d.ts#L4)`>`
+and returns a `Promise<`[`Readable`](https://github.com/SamuelScheit/puppeteer-stream/blob/beb7d50dbae8069cd7e42eb17dbe99174c56e3a6/src/PuppeteerStream.ts#L288)`>`
 
 For a detailed documentation of the `mimeType`, `audioBitsPerSecond`, `videoBitsPerSecond`, `bitsPerSecond`, `frameSize` properties have a look at the [HTML5 MediaRecorder Options](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/MediaRecorder) and for the `videoConstraints` and `audioConstraints` properties have a look at the [MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints).
-
-### Launch
-
-The method `launch(options)` is just a slightly changed puppeteer [launch](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-puppeteerlaunchoptions) function to start puppeteer in headful mode with this extension.
 
 ## Example
 
@@ -74,6 +89,9 @@ const file = fs.createWriteStream(__dirname + "/test.webm");
 
 async function test() {
 	const browser = await launch({
+		executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
+		// or on linux: "google-chrome-stable"
+		// or on mac: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 		defaultViewport: {
 			width: 1920,
 			height: 1080,
@@ -81,7 +99,7 @@ async function test() {
 	});
 
 	const page = await browser.newPage();
-	await page.goto("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+	await page.goto("https://www.youtube.com/embed/DzivgKuhNl4?autoplay=1");
 	const stream = await getStream(page, { audio: true, video: true });
 	console.log("recording");
 
