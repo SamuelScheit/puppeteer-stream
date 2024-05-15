@@ -85,14 +85,12 @@ export async function launch(
 	opts.headless = opts.headless === "new" ? "new" : false;
 
 	if (opts.headless) {
-		if (!opts.ignoreDefaultArgs)
-			opts.ignoreDefaultArgs = [];
+		if (!opts.ignoreDefaultArgs) opts.ignoreDefaultArgs = [];
 
 		if (Array.isArray(opts.ignoreDefaultArgs) && !opts.ignoreDefaultArgs.includes("--mute-audio"))
 			opts.ignoreDefaultArgs.push("--mute-audio");
 
-		if (!opts.args.includes("--headless=new"))
-			opts.args.push("--headless=new");
+		if (!opts.args.includes("--headless=new")) opts.args.push("--headless=new");
 	}
 
 	let browser: Browser;
@@ -136,7 +134,7 @@ export async function launch(
 			return chrome.tabs.query({});
 		});
 		if (opts.closeDelay) {
-			await new Promise(r => setTimeout(r, opts.closeDelay));
+			await new Promise((r) => setTimeout(r, opts.closeDelay));
 		}
 		await old_browser_close.call(browser);
 	};
