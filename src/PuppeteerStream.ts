@@ -251,8 +251,6 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 	unlock();
 	if (!tab) throw new Error("Cannot find tab");
 
-	console.log(tab);
-
 	const stream = new Transform({
 		highWaterMark: 1024 * 1024 * highWaterMarkMB,
 		transform(chunk, encoding, callback) {
