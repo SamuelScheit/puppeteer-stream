@@ -46,7 +46,7 @@ export const wss = (async () => {
 })();
 
 export async function launch(
-	arg1: StreamLaunchOptions | { launch?: Function; [key: string]: any },
+	arg1: StreamLaunchOptions | { launch?: Function;[key: string]: any },
 	opts?: StreamLaunchOptions
 ): Promise<Browser> {
 	//if puppeteer library is not passed as first argument, then first argument is options
@@ -82,6 +82,7 @@ export async function launch(
 		opts.args.push(`--ozone-override-screen-size=${opts.defaultViewport.width},${opts.defaultViewport.height}`);
 	}
 
+	// @ts-ignore
 	opts.headless = opts.headless === "new" ? "new" : false;
 
 	if (opts.headless) {
