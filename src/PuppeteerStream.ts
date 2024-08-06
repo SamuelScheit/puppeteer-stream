@@ -11,7 +11,6 @@ import { Transform } from "stream";
 import WebSocket, { WebSocketServer } from "ws";
 import { IncomingMessage } from "http";
 
-const extensionPath = path.join(__dirname, "..", "extension");
 const extensionId = "jjndjgheafjngoipoacpjgeicjeomjli";
 let currentIndex = 0;
 type StreamLaunchOptions = LaunchOptions &
@@ -20,6 +19,8 @@ type StreamLaunchOptions = LaunchOptions &
 		allowIncognito?: boolean;
 	} & {
 		closeDelay?: number;
+	} & {
+		extensionPath?: string;
 	};
 let port: number;
 
@@ -46,7 +47,7 @@ export const wss = (async () => {
 })();
 
 export async function launch(
-	arg1: StreamLaunchOptions | { launch?: Function;[key: string]: any },
+	arg1: StreamLaunchOptions | { launch?: Function; [key: string]: any },
 	opts?: StreamLaunchOptions
 ): Promise<Browser> {
 	//if puppeteer library is not passed as first argument, then first argument is options
@@ -72,9 +73,13 @@ export async function launch(
 		if (!found) opts.args.push(arg + value);
 	}
 
-	addToArgs("--load-extension=", extensionPath);
-	addToArgs("--disable-extensions-except=", extensionPath);
-	addToArgs("--allowlisted-extension-id=", extensionId);
+	if (!opts.extensionPath) {
+		opts.executablePath = path.join(__dirname, "..", "extension");
+	}
+
+	addToArgs("--load-extension=", opts.executablePath);
+	addToArgs("--disable-extensions-except=", opts.executablePath);
+	addToArgs("--allowlisted-extension-id=", opts.executablePath);
 	addToArgs("--autoplay-policy=no-user-gesture-required");
 
 	if (opts.defaultViewport?.width && opts.defaultViewport?.height) {
