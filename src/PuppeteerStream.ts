@@ -74,12 +74,12 @@ export async function launch(
 	}
 
 	if (!opts.extensionPath) {
-		opts.executablePath = path.join(__dirname, "..", "extension");
+		opts.extensionPath = path.join(__dirname, "..", "extension");
 	}
 
-	addToArgs("--load-extension=", opts.executablePath);
-	addToArgs("--disable-extensions-except=", opts.executablePath);
-	addToArgs("--allowlisted-extension-id=", opts.executablePath);
+	addToArgs("--load-extension=", opts.extensionPath);
+	addToArgs("--disable-extensions-except=", opts.extensionPath);
+	addToArgs("--allowlisted-extension-id=", opts.extensionPath);
 	addToArgs("--autoplay-policy=no-user-gesture-required");
 
 	if (opts.defaultViewport?.width && opts.defaultViewport?.height) {
