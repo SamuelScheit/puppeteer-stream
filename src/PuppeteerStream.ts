@@ -79,8 +79,9 @@ export async function launch(
 
 	addToArgs("--load-extension=", opts.extensionPath);
 	addToArgs("--disable-extensions-except=", opts.extensionPath);
-	addToArgs("--allowlisted-extension-id=", opts.extensionPath);
+	addToArgs("--allowlisted-extension-id=", extensionId);
 	addToArgs("--autoplay-policy=no-user-gesture-required");
+	addToArgs("--auto-accept-this-tab-capture");
 
 	if (opts.defaultViewport?.width && opts.defaultViewport?.height) {
 		opts.args.push(`--window-size=${opts.defaultViewport.width},${opts.defaultViewport.height}`);
@@ -202,6 +203,10 @@ async function getExtensionPage(browser: Browser) {
 		return target.type() === "page" && target.url().startsWith(`chrome-extension://${extensionId}/options.html`);
 	});
 	if (!extensionTarget) throw new Error("cannot load extension");
+
+	const worker = await extensionTarget.worker();
+
+	console.log(worker);
 
 	const videoCaptureExtension = await extensionTarget.page();
 	if (!videoCaptureExtension) throw new Error("cannot get page of extension");

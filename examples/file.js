@@ -10,7 +10,7 @@ async function test() {
 	});
 
 	const page = await browser.newPage();
-	await page.goto("https://www.youtube.com/embed/DzivgKuhNl4?autoplay=1");
+	await page.goto("https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1&vq=hd1080");
 	await page.setViewport({
 		width: 1920,
 		height: 1080,
@@ -35,4 +35,4 @@ async function test() {
 	}, 1000 * 10);
 }
 
-test();
+test().catch(console.error);

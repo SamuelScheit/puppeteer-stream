@@ -6,6 +6,6 @@
 	"sockets": {
 		"tcp": { "connect": ["*"] }
 	},
-	"permissions": ["tabs", "tabCapture", "storage", "activeTab", "scripting", "sockets.udp", "sockets.tcp"],
+	"permissions": ["tabs", "tabCapture", "storage", "scripting", "sockets.udp", "sockets.tcp"],
 	"host_permissions": ["*://*/*", "<all_urls>", "https://*/*", "http://*/*"]
 }

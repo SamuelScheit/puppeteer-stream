@@ -7,6 +7,7 @@ An Extension for Puppeteer to retrieve audio and/or video streams of a page
 </a>
 
 ## Recording video/audio from video conferencing calls
+
 If you’re looking to use this repo to retrieve video or audio streams from meeting platforms like Zoom, Google Meet, Microsoft Teams, consider checking out [Recall.ai](https://www.recall.ai/?utm_source=github&utm_medium=sponsorship&utm_campaign=puppeteer-stream), an API for meeting recording.
 
 ## Installation
@@ -34,12 +35,13 @@ import { launch, getStream } from "puppeteer-stream";
 
 ### Launch
 
-The method [`launch(options)`](https://github.com/SamuelScheit/puppeteer-stream/blob/beb7d50dbae8069cd7e42eb17dbe99174c56e3a6/src/PuppeteerStream.ts#L46) takes additional to the original [puppeteer launch function](https://github.com/puppeteer/puppeteer/blob/puppeteer-v20.7.2/docs/api/puppeteer.puppeteernode.launch.md), the following options
+The method [`launch(options)`](https://github.com/SamuelScheit/puppeteer-stream/blob/main/src/PuppeteerStream.ts#L16) takes additional to the original [puppeteer launch function](https://github.com/puppeteer/puppeteer/blob/puppeteer-v20.7.2/docs/api/puppeteer.puppeteernode.launch.md), the following options
 
 ```ts
 {
 	allowIncognito?: boolean, // to be able to use incognito mode
 	closeDelay?: number, // to fix rarely occurring TargetCloseError, set and increase number (in ms)
+	extensionPath?: string, // used internally to load the puppeteer-stream browser extension (needed for electron https://github.com/SamuelScheit/puppeteer-stream/issues/137)
 }
 ```
 
@@ -99,7 +101,7 @@ async function test() {
 	});
 
 	const page = await browser.newPage();
-	await page.goto("https://www.youtube.com/embed/DzivgKuhNl4?autoplay=1");
+	await page.goto("https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1");
 	const stream = await getStream(page, { audio: true, video: true });
 	console.log("recording");
 
