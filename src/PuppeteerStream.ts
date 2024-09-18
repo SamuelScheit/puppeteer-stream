@@ -198,7 +198,7 @@ export interface getStreamOptions {
 	};
 }
 
-async function getExtensionPage(browser: Browser) {
+export async function getExtensionPage(browser: Browser) {
 	const extensionTarget = await browser.waitForTarget((target) => {
 		return target.type() === "page" && target.url().startsWith(`chrome-extension://${extensionId}/options.html`);
 	});
