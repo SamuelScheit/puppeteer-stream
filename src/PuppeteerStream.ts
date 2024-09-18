@@ -204,10 +204,6 @@ export async function getExtensionPage(browser: Browser) {
 	});
 	if (!extensionTarget) throw new Error("cannot load extension");
 
-	const worker = await extensionTarget.worker();
-
-	console.log(worker);
-
 	const videoCaptureExtension = await extensionTarget.page();
 	if (!videoCaptureExtension) throw new Error("cannot get page of extension");
 
