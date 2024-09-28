@@ -47,17 +47,17 @@ async function START_RECORDING({
 
 	const stream = await navigator.mediaDevices.getUserMedia({
 		video: video && {
-			...video,
+			...videoConstraints,
 			mandatory: {
-				...video?.mandatory,
+				...videoConstraints?.mandatory,
 				chromeMediaSource: "tab",
 				chromeMediaSourceId: streamId,
 			},
 		},
 		audio: audio && {
-			...audio,
+			...audioConstraints,
 			mandatory: {
-				...audio?.mandatory,
+				...audioConstraints?.mandatory,
 				chromeMediaSource: "tab",
 				chromeMediaSourceId: streamId,
 			},
