@@ -137,7 +137,6 @@ export async function launch(
 		}
 		const extension = await getExtensionPage(browser);
 		await extension.evaluate(async () => {
-			// @ts-expect-error
 			return chrome.tabs.query({});
 		});
 		if (opts.closeDelay) {
