@@ -2,15 +2,14 @@ const { launch, getStream } = require("../");
 const fs = require("fs");
 const utils = require("../tests/_utils");
 
-const file = fs.createWriteStream(__dirname + "/test.webm");
 
-async function test() {
-	const browser = await launch({
-		executablePath: utils.getExecutablePath(),
+async function youtube(browser, i = 0) {
+	const file = fs.createWriteStream(__dirname + "/test" + i + ".webm", {
+		highWaterMark: 1024
 	});
 
 	const page = await browser.newPage();
-	await page.goto("https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1&vq=hd1080");
+	await page.goto("https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1&vq=hd1080&start=30");
 	await page.setViewport({
 		width: 1920,
 		height: 1080,
@@ -32,7 +31,20 @@ async function test() {
 		stream.destroy();
 		file.close();
 		console.log("finished");
-	}, 1000 * 10);
+		await page.close();
+	}, 1000 * 30);
 }
 
-test().catch(console.error);
+async function main() {
+
+	const browser = await launch({
+		executablePath: utils.getExecutablePath(),
+	});
+
+	for (let i = 0; i < 2; i++) {
+		youtube(browser, i).catch(console.error);
+	}
+
+}
+
+main()

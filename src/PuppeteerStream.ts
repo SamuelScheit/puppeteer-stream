@@ -324,6 +324,7 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 
 	(await wss).on("connection", onConnection);
 
+	await lock();
 	await page.bringToFront();
 	await assertExtensionLoaded(extension, retryPolicy);
 
@@ -332,6 +333,7 @@ export async function getStream(page: Page, opts: getStreamOptions) {
 		(settings) => START_RECORDING(settings),
 		{ ...opts, index, tabId: tab.id }
 	);
+	unlock();
 
 	return stream;
 }
