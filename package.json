@@ -5,7 +5,8 @@
 	"main": "dist/PuppeteerStream.js",
 	"types": "dist/PuppeteerStream.d.ts",
 	"scripts": {
-		"build": "tsc -b ."
+		"build": "tsc -p . && tsc -p extension",
+		"test": "node examples/file.js"
 	},
 	"keywords": [
 		"puppeteer",
@@ -25,6 +26,7 @@
 		"ws": "^8.17.1"
 	},
 	"devDependencies": {
+		"@types/chrome": "^0.0.272",
 		"@types/node": "^14.14.14",
 		"@types/puppeteer": "^5.4.2",
 		"@types/ws": "^8.5.10",

@@ -12,6 +12,8 @@ puppeteer-stream.code-workspace
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+extension/options.js
+
 
 # Runtime data
 pids
@@ -110,3 +112,5 @@ typings/
 .DS_Store
 
 dist/
+
+extension/options.js
