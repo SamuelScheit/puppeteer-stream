@@ -1,6 +1,19 @@
-// @ts-nocheck
+const recorders = {} as Record<string, MediaRecorder>;
 
-const recorders = {};
+export type RecordingOptions = {
+	index: number;
+	video: boolean;
+	audio: boolean;
+	frameSize: number;
+	audioBitsPerSecond: number;
+	videoBitsPerSecond: number;
+	bitsPerSecond: number;
+	mimeType: string;
+	videoConstraints?: chrome.tabCapture.MediaStreamConstraint;
+	audioConstraints?: chrome.tabCapture.MediaStreamConstraint;
+	delay?: number;
+	tabId: number;
+};
 
 const START_RECORDING = async ({
 	index,
@@ -15,7 +28,7 @@ const START_RECORDING = async ({
 	audioConstraints,
 	delay,
 	tabId,
-}) => {
+}: RecordingOptions) => {
 	console.log(
 		"[PUPPETEER_STREAM] START_RECORDING",
 		JSON.stringify({
@@ -102,10 +115,13 @@ const START_RECORDING = async ({
 	recorder.start(frameSize);
 };
 
-const STOP_RECORDING = async (index) => {
+const STOP_RECORDING = async (index: number) => {
 	console.log("[PUPPETEER_STREAM] STOP_RECORDING", index);
 	if (!recorders[index]) return;
 	if (recorders[index].state === "inactive") return;
 
 	recorders[index].stop();
 };
+
+globalThis.START_RECORDING = START_RECORDING;
+globalThis.STOP_RECORDING = STOP_RECORDING;
