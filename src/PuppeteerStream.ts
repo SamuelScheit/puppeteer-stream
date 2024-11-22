@@ -161,7 +161,11 @@ export type BrowserMimeType =
 	| "video/webm;codecs=vp8,vp9,opus"
 	| "audio/webm"
 	| "audio/webm;codecs=opus"
-	| "audio/webm;codecs=pcm";
+	| "audio/webm;codecs=pcm"
+	| "video/mp4"
+	| "video/mp4;codecs=avc1,mp4a.40.2"
+	| "video/mp4;codecs=vp9,mp4a.40.2"
+	| "video/mp4;codecs=av01,mp4a.40.2"
 
 export type Constraints = {
 	mandatory?: MediaTrackConstraints;
