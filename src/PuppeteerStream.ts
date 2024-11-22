@@ -165,7 +165,7 @@ export type BrowserMimeType =
 	| "video/mp4"
 	| "video/mp4;codecs=avc1,mp4a.40.2"
 	| "video/mp4;codecs=vp9,mp4a.40.2"
-	| "video/mp4;codecs=av01,mp4a.40.2"
+	| "video/mp4;codecs=av01,mp4a.40.2";
 
 export type Constraints = {
 	mandatory?: MediaTrackConstraints;
