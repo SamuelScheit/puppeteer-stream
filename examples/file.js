@@ -2,10 +2,9 @@ const { launch, getStream } = require("../");
 const fs = require("fs");
 const utils = require("../tests/_utils");
 
-
 async function youtube(browser, i = 0) {
 	const file = fs.createWriteStream(__dirname + "/test" + i + ".webm", {
-		highWaterMark: 1024
+		highWaterMark: 1024,
 	});
 
 	const page = await browser.newPage();
@@ -32,19 +31,18 @@ async function youtube(browser, i = 0) {
 		file.close();
 		console.log("finished");
 		await page.close();
-	}, 1000 * 30);
+	}, 1000 * 10);
 }
 
 async function main() {
-
 	const browser = await launch({
 		executablePath: utils.getExecutablePath(),
+		headless: "new",
 	});
 
-	for (let i = 0; i < 2; i++) {
+	for (let i = 0; i < 1; i++) {
 		youtube(browser, i).catch(console.error);
 	}
-
 }
 
-main()
+main();
