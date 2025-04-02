@@ -22,7 +22,7 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"puppeteer-core": "^22.12.0",
+		"puppeteer-core": "^24.5.0",
 		"ws": "^8.17.1"
 	},
 	"devDependencies": {
